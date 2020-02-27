@@ -52,6 +52,7 @@ from the multiprocessing library.
 
 import os
 import platform
+from mpi4py.futures import MPIPoolExecutor
 from concurrent.futures import ProcessPoolExecutor
 from qiskit.exceptions import QiskitError
 from qiskit.util import local_hardware_info
@@ -117,15 +118,17 @@ def parallel_map(  # pylint: disable=dangerous-default-value
         os.environ['QISKIT_IN_PARALLEL'] = 'TRUE'
         try:
             results = []
-            with ProcessPoolExecutor(max_workers=num_processes) as executor:
+
+            with MPIPoolExecutor() as executor:
                 param = map(lambda value: (task, value, task_args, task_kwargs), values)
                 future = executor.map(_task_wrapper, param)
-
             results = list(future)
-            Publisher().publish("terra.parallel.done", len(results))
-
+            for result in results:
+                nfinished[0] += 1
+                Publisher().publish("terra.parallel.done", nfinished[0])
         except (KeyboardInterrupt, Exception) as error:
             if isinstance(error, KeyboardInterrupt):
+                # TODO (imaihal): Error handling required?
                 Publisher().publish("terra.parallel.finish")
                 os.environ['QISKIT_IN_PARALLEL'] = 'FALSE'
                 raise QiskitError('Keyboard interrupt in parallel_map.')
