@@ -234,7 +234,7 @@ class PulseQobjConfig(QobjDictField):
 
     def __init__(self, meas_level, meas_return, pulse_library,
                  qubit_lo_freq, meas_lo_freq, memory_slot_size=None,
-                 rep_time=None, rep_delay=None, shots=None, max_credits=None,
+                 rep_time=None, rep_delay=None, shots=None,
                  seed_simulator=None, memory_slots=None, **kwargs):
         """Instantiate a PulseQobjConfig object.
 
@@ -256,7 +256,6 @@ class PulseQobjConfig(QobjDictField):
                 If supported, ``rep_delay`` will be used instead of ``rep_time``. Must be from the
                 list provided by the backend (``backend.configuration().rep_delays``).
             shots (int): The number of shots
-            max_credits (int): the max_credits to use on the IBMQ public devices.
             seed_simulator (int): the seed to use in the simulator
             memory_slots (list): The number of memory slots on the device
             kwargs: Additional free form key value fields to add to the
@@ -275,9 +274,6 @@ class PulseQobjConfig(QobjDictField):
             self.rep_delay = rep_delay
         if shots is not None:
             self.shots = int(shots)
-
-        if max_credits is not None:
-            self.max_credits = int(max_credits)
 
         if seed_simulator is not None:
             self.seed_simulator = int(seed_simulator)
