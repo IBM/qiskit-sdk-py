@@ -1352,7 +1352,8 @@ class TestStandardMethods(QiskitTestCase):
             free_params = len(set(sig.parameters) - {'label'})
             try:
                 gate = gate_class(*params[0:free_params])
-            except (CircuitError, QiskitError, AttributeError):
+            except (CircuitError, QiskitError, AttributeError, TypeError):
+                # TypeError: skips DiagonalGate
                 self.log.info(
                     'Cannot init gate with params only. Skipping %s',
                     gate_class)
