@@ -28,7 +28,7 @@ class Counts(dict):
     """A class to store a counts result from a circuit execution."""
 
     def __init__(self, data, time_taken=None, creg_sizes=None,
-                 memory_slots=None):
+                 memory_slots=None, include_zeros=False):
         """Build a counts object
 
         Args:
@@ -54,6 +54,8 @@ class Counts(dict):
                 ``[('c_reg', 2), ('my_creg', 4)]``.
             memory_slots (int): The number of total ``memory_slots`` in the
                 experiment.
+            include_zeros (bool): If `True`, it includes the counts in zero. Default `False`.
+
         Raises:
             TypeError: If the input key type is not an int or string
             QiskitError: If a dit string key is input with creg_sizes and/or
@@ -65,40 +67,48 @@ class Counts(dict):
         self.hex_raw = {}
         bin_data = {}
 
-        first_key = next(iter(data.keys()))
-        if isinstance(first_key, int):
-            self.int_raw.update(data)
-            self.hex_raw.update({hex(key): value for key, value in self.int_raw.items()})
-        elif isinstance(first_key, str):
-            if first_key.startswith('0x'):
-                self.hex_raw.update(data)
-                self.int_raw.update({int(key, 0): value for key, value in self.hex_raw.items()})
-            elif first_key.startswith('0b'):
-                self.int_raw.update({int(key, 0): value for key, value in data.items()})
+        if include_zeros:
+            for slot_int in range(memory_slots):
+                self.int_raw[slot_int] = 0
+                self.hex_raw[hex(slot_int)] = 0
+                slot_bin = bin(slot_int)[2:].zfill(memory_slots)
+                bin_data[postprocess._separate_bitstring(slot_bin, creg_sizes)] = 0
+
+        if data:
+            first_key = next(iter(data.keys()))
+            if isinstance(first_key, int):
+                self.int_raw.update(data)
                 self.hex_raw.update({hex(key): value for key, value in self.int_raw.items()})
-            else:
-                if not creg_sizes and not memory_slots:
-                    self.hex_raw = None
-                    self.int_raw = None
-                    bin_data.update(data)
+            elif isinstance(first_key, str):
+                if first_key.startswith('0x'):
+                    self.hex_raw.update(data)
+                    self.int_raw.update({int(key, 0): value for key, value in self.hex_raw.items()})
+                elif first_key.startswith('0b'):
+                    self.int_raw.update({int(key, 0): value for key, value in data.items()})
+                    self.hex_raw.update({hex(key): value for key, value in self.int_raw.items()})
                 else:
-                    bitstring_regex = re.compile(r'^[01\s]+$')
-                    hex_dict = {}
-                    int_dict = {}
-                    for bitstring, value in data.items():
-                        if not bitstring_regex.search(bitstring):
-                            raise exceptions.QiskitError(
-                                'Counts objects with dit strings do not '
-                                'currently support dit string formatting parameters '
-                                'creg_sizes or memory_slots')
-                        int_key = int(bitstring.replace(" ", ""), 2)
-                        int_dict[int_key] = value
-                        hex_dict[hex(int_key)] = value
-                    self.hex_raw.update(hex_dict)
-                    self.int_raw.update(int_dict)
-        else:
-            raise TypeError("Invalid input key type %s, must be either an int "
-                            "key or string key with hexademical value or bit string")
+                    if not creg_sizes and not memory_slots:
+                        self.hex_raw = None
+                        self.int_raw = None
+                        bin_data.update(data)
+                    else:
+                        bitstring_regex = re.compile(r'^[01\s]+$')
+                        hex_dict = {}
+                        int_dict = {}
+                        for bitstring, value in data.items():
+                            if not bitstring_regex.search(bitstring):
+                                raise exceptions.QiskitError(
+                                    'Counts objects with dit strings do not '
+                                    'currently support dit string formatting parameters '
+                                    'creg_sizes or memory_slots')
+                            int_key = int(bitstring.replace(" ", ""), 2)
+                            int_dict[int_key] = value
+                            hex_dict[hex(int_key)] = value
+                        self.hex_raw.update(hex_dict)
+                        self.int_raw.update(int_dict)
+            else:
+                raise TypeError("Invalid input key type %s, must be either an int "
+                                "key or string key with hexademical value or bit string")
         header = {}
         self.creg_sizes = creg_sizes
         if self.creg_sizes:
@@ -106,8 +116,8 @@ class Counts(dict):
         self.memory_slots = memory_slots
         if self.memory_slots:
             header['memory_slots'] = self.memory_slots
-        if not bin_data:
-            bin_data = postprocess.format_counts(self.hex_raw, header=header)
+        if not bin_data or include_zeros:
+            bin_data.update(postprocess.format_counts(self.hex_raw, header=header))
         super().__init__(bin_data)
         self.time_taken = time_taken
 
@@ -175,3 +185,10 @@ class Counts(dict):
                 int_key = int(bitstring.replace(" ", ""), 2)
                 out_dict[int_key] = value
             return out_dict
+
+    def __getitem__(self, key):
+        try:
+            val = dict.__getitem__(self, key)
+        except KeyError:
+            val = 0
+        return val

@@ -57,6 +57,19 @@ class TestResultOperations(QiskitTestCase):
 
         self.assertEqual(result.get_counts(0), processed_counts)
 
+    def test_counts_header_with_zeros(self):
+        """Test that counts are extracted properly with header (include_zeros)."""
+        raw_counts = {'0x0': 4, '0x2': 10}
+        processed_counts = {'0 0 00': 4, '0 0 01': 0, '0 0 10': 10, '0 0 11': 0}
+        data = models.ExperimentResultData(counts=dict(**raw_counts))
+        exp_result_header = QobjExperimentHeader(
+            creg_sizes=[['c0', 2], ['c0', 1], ['c1', 1]], memory_slots=4)
+        exp_result = models.ExperimentResult(shots=14, success=True, meas_level=2,
+                                             data=data, header=exp_result_header)
+        result = Result(results=[exp_result], **self.base_result_args)
+
+        self.assertEqual(result.get_counts(0, include_zeros=True), processed_counts)
+
     def test_result_repr(self):
         """Test that repr is contstructed correctly for a results object."""
         raw_counts = {'0x0': 4, '0x2': 10}
@@ -75,8 +88,7 @@ class TestResultOperations(QiskitTestCase):
         self.assertEqual(expected, repr(result))
 
     def test_multiple_circuits_counts(self):
-        """"
-        Test that counts are returned either as a list or a single item.
+        """Test that counts are returned either as a list or a single item.
 
         Counts are returned as a list when multiple experiments are executed
         and get_counts() is called with no arguments. In all the other cases
