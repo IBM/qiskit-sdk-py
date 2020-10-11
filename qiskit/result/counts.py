@@ -59,51 +59,50 @@ class Counts(dict):
             QiskitError: If a dit string key is input with creg_sizes and/or
                 memory_slots
         """
-        bin_data = None
         data = dict(data)
-        if not data:
-            self.int_raw = {}
-            self.hex_raw = {}
-            bin_data = {}
-        else:
-            first_key = next(iter(data.keys()))
-            if isinstance(first_key, int):
-                self.int_raw = data
+
+        self.int_raw = {}
+        self.hex_raw = {}
+        bin_data = {}
+
+        first_key = next(iter(data.keys()))
+        if isinstance(first_key, int):
+            self.int_raw = data
+            self.hex_raw = {
+                hex(key): value for key, value in self.int_raw.items()}
+        elif isinstance(first_key, str):
+            if first_key.startswith('0x'):
+                self.hex_raw = data
+                self.int_raw = {
+                    int(key, 0): value for key, value in self.hex_raw.items()}
+            elif first_key.startswith('0b'):
+                self.int_raw = {
+                    int(key, 0): value for key, value in data.items()}
                 self.hex_raw = {
                     hex(key): value for key, value in self.int_raw.items()}
-            elif isinstance(first_key, str):
-                if first_key.startswith('0x'):
-                    self.hex_raw = data
-                    self.int_raw = {
-                        int(key, 0): value for key, value in self.hex_raw.items()}
-                elif first_key.startswith('0b'):
-                    self.int_raw = {
-                        int(key, 0): value for key, value in data.items()}
-                    self.hex_raw = {
-                        hex(key): value for key, value in self.int_raw.items()}
-                else:
-                    if not creg_sizes and not memory_slots:
-                        self.hex_raw = None
-                        self.int_raw = None
-                        bin_data = data
-                    else:
-                        bitstring_regex = re.compile(r'^[01\s]+$')
-                        hex_dict = {}
-                        int_dict = {}
-                        for bitstring, value in data.items():
-                            if not bitstring_regex.search(bitstring):
-                                raise exceptions.QiskitError(
-                                    'Counts objects with dit strings do not '
-                                    'currently support dit string formatting parameters '
-                                    'creg_sizes or memory_slots')
-                            int_key = int(bitstring.replace(" ", ""), 2)
-                            int_dict[int_key] = value
-                            hex_dict[hex(int_key)] = value
-                        self.hex_raw = hex_dict
-                        self.int_raw = int_dict
             else:
-                raise TypeError("Invalid input key type %s, must be either an int "
-                                "key or string key with hexademical value or bit string")
+                if not creg_sizes and not memory_slots:
+                    self.hex_raw = None
+                    self.int_raw = None
+                    bin_data = data
+                else:
+                    bitstring_regex = re.compile(r'^[01\s]+$')
+                    hex_dict = {}
+                    int_dict = {}
+                    for bitstring, value in data.items():
+                        if not bitstring_regex.search(bitstring):
+                            raise exceptions.QiskitError(
+                                'Counts objects with dit strings do not '
+                                'currently support dit string formatting parameters '
+                                'creg_sizes or memory_slots')
+                        int_key = int(bitstring.replace(" ", ""), 2)
+                        int_dict[int_key] = value
+                        hex_dict[hex(int_key)] = value
+                    self.hex_raw = hex_dict
+                    self.int_raw = int_dict
+        else:
+            raise TypeError("Invalid input key type %s, must be either an int "
+                            "key or string key with hexademical value or bit string")
         header = {}
         self.creg_sizes = creg_sizes
         if self.creg_sizes:
