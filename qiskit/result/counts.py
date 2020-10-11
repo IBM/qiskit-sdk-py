@@ -67,24 +67,20 @@ class Counts(dict):
 
         first_key = next(iter(data.keys()))
         if isinstance(first_key, int):
-            self.int_raw = data
-            self.hex_raw = {
-                hex(key): value for key, value in self.int_raw.items()}
+            self.int_raw.update(data)
+            self.hex_raw.update({hex(key): value for key, value in self.int_raw.items()})
         elif isinstance(first_key, str):
             if first_key.startswith('0x'):
-                self.hex_raw = data
-                self.int_raw = {
-                    int(key, 0): value for key, value in self.hex_raw.items()}
+                self.hex_raw.update(data)
+                self.int_raw.update({int(key, 0): value for key, value in self.hex_raw.items()})
             elif first_key.startswith('0b'):
-                self.int_raw = {
-                    int(key, 0): value for key, value in data.items()}
-                self.hex_raw = {
-                    hex(key): value for key, value in self.int_raw.items()}
+                self.int_raw.update({int(key, 0): value for key, value in data.items()})
+                self.hex_raw.update({hex(key): value for key, value in self.int_raw.items()})
             else:
                 if not creg_sizes and not memory_slots:
                     self.hex_raw = None
                     self.int_raw = None
-                    bin_data = data
+                    bin_data.update(data)
                 else:
                     bitstring_regex = re.compile(r'^[01\s]+$')
                     hex_dict = {}
@@ -98,8 +94,8 @@ class Counts(dict):
                         int_key = int(bitstring.replace(" ", ""), 2)
                         int_dict[int_key] = value
                         hex_dict[hex(int_key)] = value
-                    self.hex_raw = hex_dict
-                    self.int_raw = int_dict
+                    self.hex_raw.update(hex_dict)
+                    self.int_raw.update(int_dict)
         else:
             raise TypeError("Invalid input key type %s, must be either an int "
                             "key or string key with hexademical value or bit string")
