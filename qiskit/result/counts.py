@@ -88,7 +88,8 @@ class Counts(dict):
             first_key = next(iter(data.keys()))
             if isinstance(first_key, int):
                 self.int_raw.update(data)
-                self.hex_raw.update({hex(key): value for key, value in self.int_raw.items()})
+                self.hex_raw.update({
+                    hex(key): value for key, value in self.int_raw.items()})
             elif isinstance(first_key, str):
                 if first_key.startswith('0x'):
                     self.hex_raw.update(data)
