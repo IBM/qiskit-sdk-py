@@ -58,7 +58,7 @@ class TestResultOperations(QiskitTestCase):
         self.assertEqual(result.get_counts(0), processed_counts)
 
     def test_counts_header_with_zeros(self):
-        """Test that counts are extracted properly with header (include_zeros)."""
+        """Test that counts are extracted properly with header (implicit_zeros)."""
         raw_counts = {'0x0': 4, '0x2': 10}
         processed_counts = {'0 0 00': 4, '0 0 01': 0, '0 0 10': 10, '0 0 11': 0}
         data = models.ExperimentResultData(counts=dict(**raw_counts))

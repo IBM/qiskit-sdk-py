@@ -28,7 +28,7 @@ class Counts(dict):
     """A class to store a counts result from a circuit execution."""
 
     def __init__(self, data, time_taken=None, creg_sizes=None,
-                 memory_slots=None, include_zeros=False):
+                 memory_slots=None, implicit_zeros=False):
         """Build a counts object
 
         Args:
@@ -54,7 +54,7 @@ class Counts(dict):
                 ``[('c_reg', 2), ('my_creg', 4)]``.
             memory_slots (int): The number of total ``memory_slots`` in the
                 experiment.
-            include_zeros (bool): If `True`, it includes the counts in zero. Default `False`.
+            implicit_zeros (bool): If `True`, it includes the counts in zero. Default `False`.
 
         Raises:
             TypeError: If the input key type is not an int or string
@@ -67,7 +67,7 @@ class Counts(dict):
         self.hex_raw = {}
         bin_data = {}
 
-        if include_zeros:
+        if implicit_zeros:
             for slot_int in range(memory_slots):
                 self.int_raw[slot_int] = 0
                 self.hex_raw[hex(slot_int)] = 0
@@ -116,7 +116,7 @@ class Counts(dict):
         self.memory_slots = memory_slots
         if self.memory_slots:
             header['memory_slots'] = self.memory_slots
-        if not bin_data or include_zeros:
+        if not bin_data or implicit_zeros:
             bin_data.update(postprocess.format_counts(self.hex_raw, header=header))
         super().__init__(bin_data)
         self.time_taken = time_taken

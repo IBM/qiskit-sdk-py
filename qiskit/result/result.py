@@ -269,7 +269,7 @@ class Result:
                 else:
                     counts_header = {}
                 dict_list.append(Counts(self.data(key)['counts'], **counts_header,
-                                        include_zeros=include_zeros))
+                                        implicit_zeros=include_zeros))
             elif 'statevector' in self.data(key).keys():
                 vec = postprocess.format_statevector(self.data(key)['statevector'])
                 dict_list.append(statevector.Statevector(vec).probabilities_dict(decimals=15))
