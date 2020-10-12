@@ -75,6 +75,13 @@ def format_counts_memory(shot_memory, header=None):
 
 
 def estimate_memory_slots(data, header):
+    """Returns the amount of memory slots based on the best estimation when is not possible.
+    The amount of memory slots is guesses based on the following elements (in precedence order):
+      - `header[memory_slots]`
+      - the sum sizes in `header[creg_sizes]`
+      - the size of the shorter bitstream to represent the bigger key in data.
+      - otherwise, 0
+    """
     creg_sizes = header.get('creg_sizes', None)
     memory_slots = header.get('memory_slots', None)
 
@@ -85,7 +92,7 @@ def estimate_memory_slots(data, header):
         return sum([creg_size[1] for creg_size in creg_sizes])
 
     if data:
-        return max([len(key) for key in format_counts(data).keys()])
+        return max([len(key) for key in format_counts(data)])
 
     return 0
 
