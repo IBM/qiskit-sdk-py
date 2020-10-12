@@ -70,7 +70,7 @@ class TestResultOperations(QiskitTestCase):
                                              data=data, header=exp_result_header)
         result = Result(results=[exp_result], **self.base_result_args)
 
-        self.assertEqual(result.get_counts(0, include_zeros=True), processed_counts)
+        self.assertEqual(result.get_counts(0, implicit_zeros=True), processed_counts)
 
     def test_memory_slots_none_with_zeros(self):
         """Test implicit_zeros when memory_slots=None."""
@@ -86,7 +86,7 @@ class TestResultOperations(QiskitTestCase):
                                              data=data, header=exp_result_header)
         result = Result(results=[exp_result], **self.base_result_args)
 
-        self.assertEqual(result.get_counts(0, include_zeros=True), processed_counts)
+        self.assertEqual(result.get_counts(0, implicit_zeros=True), processed_counts)
 
     def test_estimate_size_with_zeros(self):
         """Test implicit_zeros when memory_slots=None and creg_sizes=None."""
@@ -96,7 +96,7 @@ class TestResultOperations(QiskitTestCase):
         exp_result = models.ExperimentResult(shots=14, success=True, meas_level=2, data=data)
         result = Result(results=[exp_result], **self.base_result_args)
 
-        self.assertEqual(result.get_counts(0, include_zeros=True), processed_counts)
+        self.assertEqual(result.get_counts(0, implicit_zeros=True), processed_counts)
 
     def test_implicit_zeros_empty(self):
         """Test implicit_zeros when no data, memory_slots=None and creg_sizes=None."""
@@ -106,7 +106,7 @@ class TestResultOperations(QiskitTestCase):
         exp_result = models.ExperimentResult(shots=14, success=True, meas_level=2, data=data)
         result = Result(results=[exp_result], **self.base_result_args)
 
-        self.assertEqual(result.get_counts(0, include_zeros=True), processed_counts)
+        self.assertEqual(result.get_counts(0, implicit_zeros=True), processed_counts)
 
     def test_result_repr(self):
         """Test that repr is contstructed correctly for a results object."""

@@ -54,8 +54,8 @@ class Counts(dict):
                 ``[('c_reg', 2), ('my_creg', 4)]``.
             memory_slots (int): The number of total ``memory_slots`` in the
                 experiment.
-            implicit_zeros (bool): If `True`, it includes the counts in zero. Default `False`.
-
+            implicit_zeros (bool): If `True`, the missing keys are filled up with implicit zero
+                values. Default `False`.
         Raises:
             TypeError: If the input key type is not an int or string
             QiskitError: If a dit string key is input with creg_sizes and/or

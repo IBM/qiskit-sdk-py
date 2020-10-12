@@ -231,13 +231,14 @@ class Result:
         except KeyError:
             raise QiskitError('No memory for experiment "{}".'.format(experiment))
 
-    def get_counts(self, experiment=None, include_zeros=False):
+    def get_counts(self, experiment=None, implicit_zeros=False):
         """Get the histogram data of an experiment.
 
         Args:
             experiment (str or QuantumCircuit or Schedule or int or None): the index of the
                 experiment, as specified by ``get_data()``.
-            include_zeros (bool): If `True`, it includes the counts in zero. Default `False`.
+            implicit_zeros (bool): If `True`, the missing keys are filled up with implicit zero
+                values. Default `False`.
 
         Returns:
             dict[str:int] or list[dict[str:int]]: a dictionary or a list of
@@ -269,7 +270,7 @@ class Result:
                 else:
                     counts_header = {}
                 dict_list.append(Counts(self.data(key)['counts'], **counts_header,
-                                        implicit_zeros=include_zeros))
+                                        implicit_zeros=implicit_zeros))
             elif 'statevector' in self.data(key).keys():
                 vec = postprocess.format_statevector(self.data(key)['statevector'])
                 dict_list.append(statevector.Statevector(vec).probabilities_dict(decimals=15))
