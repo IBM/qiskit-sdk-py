@@ -93,10 +93,13 @@ class Counts(dict):
             elif isinstance(first_key, str):
                 if first_key.startswith('0x'):
                     self.hex_raw.update(data)
-                    self.int_raw.update({int(key, 0): value for key, value in self.hex_raw.items()})
+                    self.int_raw.update({
+                        int(key, 0): value for key, value in self.hex_raw.items()})
                 elif first_key.startswith('0b'):
-                    self.int_raw.update({int(key, 0): value for key, value in data.items()})
-                    self.hex_raw.update({hex(key): value for key, value in self.int_raw.items()})
+                    self.int_raw.update({
+                        int(key, 0): value for key, value in data.items()})
+                    self.hex_raw.update({
+                        hex(key): value for key, value in self.int_raw.items()})
                 else:
                     if not creg_sizes and not memory_slots:
                         self.hex_raw = None
