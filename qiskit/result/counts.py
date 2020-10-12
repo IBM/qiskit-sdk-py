@@ -63,16 +63,26 @@ class Counts(dict):
         """
         data = dict(data)
 
+        header = {}
+        self.creg_sizes = creg_sizes
+        if self.creg_sizes:
+            header['creg_sizes'] = self.creg_sizes
+        self.memory_slots = memory_slots
+        if self.memory_slots:
+            header['memory_slots'] = self.memory_slots
+
         self.int_raw = {}
         self.hex_raw = {}
         bin_data = {}
 
         if implicit_zeros:
-            for slot_int in range(memory_slots):
-                self.int_raw[slot_int] = 0
-                self.hex_raw[hex(slot_int)] = 0
-                slot_bin = bin(slot_int)[2:].zfill(memory_slots)
-                bin_data[postprocess._separate_bitstring(slot_bin, creg_sizes)] = 0
+            memory_size = postprocess.estimate_memory_slots(data, header)
+            if memory_size:
+                for slot_int in range(2**memory_size):
+                    self.int_raw[slot_int] = 0
+                    self.hex_raw[hex(slot_int)] = 0
+                    header['memory_slots'] = memory_size
+                    bin_data[postprocess.format_counts_memory(hex(slot_int), header)] = 0
 
         if data:
             first_key = next(iter(data.keys()))
@@ -109,13 +119,7 @@ class Counts(dict):
             else:
                 raise TypeError("Invalid input key type %s, must be either an int "
                                 "key or string key with hexademical value or bit string")
-        header = {}
-        self.creg_sizes = creg_sizes
-        if self.creg_sizes:
-            header['creg_sizes'] = self.creg_sizes
-        self.memory_slots = memory_slots
-        if self.memory_slots:
-            header['memory_slots'] = self.memory_slots
+
         if not bin_data or implicit_zeros:
             bin_data.update(postprocess.format_counts(self.hex_raw, header=header))
         super().__init__(bin_data)

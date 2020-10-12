@@ -74,6 +74,22 @@ def format_counts_memory(shot_memory, header=None):
     return shot_memory
 
 
+def estimate_memory_slots(data, header):
+    creg_sizes = header.get('creg_sizes', None)
+    memory_slots = header.get('memory_slots', None)
+
+    if memory_slots:
+        return memory_slots
+
+    if creg_sizes:
+        return sum([creg_size[1] for creg_size in creg_sizes])
+
+    if data:
+        return max([len(key) for key in format_counts(data).keys()])
+
+    return 0
+
+
 def _list_to_complex_array(complex_list):
     """Convert nested list of shape (..., 2) to complex numpy array with shape (...)
 
