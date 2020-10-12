@@ -60,7 +60,7 @@ class TestResultOperations(QiskitTestCase):
         """Test that counts are extracted properly with header (implicit_zeros)."""
         raw_counts = {'0x0': 4, '0x2': 10}
         processed_counts = {'0 0 00': 4, '0 0 10': 10,
-                            '0 0 01': 0, '0 0 11': 0, '0 1 00': 0,'0 1 01': 0, '0 1 10': 0,
+                            '0 0 01': 0, '0 0 11': 0, '0 1 00': 0, '0 1 01': 0, '0 1 10': 0,
                             '0 1 11': 0, '1 0 00': 0, '1 0 01': 0, '1 0 10': 0, '1 0 11': 0,
                             '1 1 00': 0, '1 1 01': 0, '1 1 10': 0, '1 1 11': 0}
         data = models.ExperimentResultData(counts=dict(**raw_counts))
@@ -76,7 +76,7 @@ class TestResultOperations(QiskitTestCase):
         """Test implicit_zeros when memory_slots=None."""
         raw_counts = {'0x0': 4, '0x2': 10}
         processed_counts = {'0 0 00': 4, '0 0 10': 10,
-                            '0 0 01': 0, '0 0 11': 0, '0 1 00': 0,'0 1 01': 0, '0 1 10': 0,
+                            '0 0 01': 0, '0 0 11': 0, '0 1 00': 0, '0 1 01': 0, '0 1 10': 0,
                             '0 1 11': 0, '1 0 00': 0, '1 0 01': 0, '1 0 10': 0, '1 0 11': 0,
                             '1 1 00': 0, '1 1 01': 0, '1 1 10': 0, '1 1 11': 0}
         data = models.ExperimentResultData(counts=dict(**raw_counts))
