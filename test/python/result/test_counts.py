@@ -286,8 +286,3 @@ class TestCounts(unittest.TestCase):
         counts_obj = counts.Counts(raw_counts)
         result = counts_obj.hex_outcomes()
         self.assertEqual(expected, result)
-
-    def test_inexistent_key(self):
-        raw_counts = {'0b0': 21, '0b10': 12}
-        result = counts.Counts(raw_counts)
-        self.assertEqual(0, result['1'])

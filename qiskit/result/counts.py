@@ -185,10 +185,3 @@ class Counts(dict):
                 int_key = int(bitstring.replace(" ", ""), 2)
                 out_dict[int_key] = value
             return out_dict
-
-    def __getitem__(self, key):
-        try:
-            val = dict.__getitem__(self, key)
-        except KeyError:
-            val = 0
-        return val
