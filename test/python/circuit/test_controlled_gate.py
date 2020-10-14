@@ -186,6 +186,87 @@ class TestControlledGate(QiskitTestCase):
         ref_mat = Operator(qc).data
         self.assertTrue(matrix_equal(cop_mat, ref_mat, ignore_phase=True))
 
+    def test_control_circuit_containing_single_gate(self):
+        """Test a controlled composite gate decomposition is compact."""
+        circuit = QuantumCircuit(1)
+        circuit.x(0)
+
+        controlled = QuantumCircuit(2)
+        controlled.compose(circuit.control(), inplace=True)
+
+        expected = QuantumCircuit(2)
+        expected.cx(0, 1)
+
+        self.assertEqual(controlled.decompose(), expected)
+
+    def test_control_circuit_containing_single_controlled_gate(self):
+        """Test a controlled composite gate maps registers correclty."""
+        circuit = QuantumCircuit(2)
+        circuit.cx(1, 0)
+
+        controlled = QuantumCircuit(3)
+        controlled.compose(circuit.control(), inplace=True)
+
+        expected = QuantumCircuit(3)
+        expected.ccx(0, 2, 1)
+
+        self.assertEqual(controlled.decompose(), expected)
+
+    def test_control_circuit_with_multiple_gate(self):
+        """Test controlled composite gate decomposition is compact for gates with known controls."""
+        # create controlled composite gate
+        circuit = QuantumCircuit(3)
+        circuit.x(0)
+        circuit.y(1)
+        circuit.z(2)
+        circuit.h(0)
+        circuit.rx(1.22, 0)
+        circuit.ry(2.22, 1)
+        circuit.rz(3.22, 2)
+        circuit.swap(0, 1)
+        circuit.cx(0, 1)
+        circuit.cx(1, 0)  # tests qargs are always mapped correclty
+        circuit.ccx(1, 2, 0)
+
+        controlled = QuantumCircuit(4)
+        controlled.compose(circuit.control(), inplace=True)
+
+        expected = QuantumCircuit(4)
+        expected.cx(0, 1)
+        expected.ch(0, 1)
+        expected.crx(1.22, 0, 1)
+        expected.cy(0, 2)
+        expected.cry(2.22, 0, 2)
+        expected.cswap(0, 1, 2)
+        expected.ccx(0, 1, 2)
+        expected.ccx(0, 2, 1)
+        expected.cz(0, 3)
+        expected.crz(3.22, [0], 3)
+        expected.mct([0, 2, 3], 1)
+
+        self.assertEqual(controlled.decompose(), expected)
+
+    def test_multi_control_circuit(self):
+        """Test a multi controlled composite gate decomposition is compact."""
+        num_ctrl = 3
+        # create controlled composite gate
+        circuit = QuantumCircuit(2)
+        circuit.x(0)
+        circuit.ry(2.22, 1)
+        circuit.swap(0, 1)
+        circuit.cx(1, 0)
+
+        controlled = QuantumCircuit(5)
+        controlled.compose(circuit.control(num_ctrl), inplace=True)
+
+        expected = QuantumCircuit(5)
+        expected.mct([0, 1, 2], 3)
+        expected.append(RYGate(2.22).control(num_ctrl), [0, 1, 2, 4])
+        expected.append(SwapGate().control(num_ctrl), [0, 1, 2, 3, 4])
+        expected.mct([0, 1, 2, 4], 3)
+
+        self.assertEqual(controlled.decompose(), expected)
+
     def test_multi_control_u3(self):
         """Test the matrix representation of the controlled and controlled-controlled U3 gate."""
         import qiskit.circuit.library.standard_gates.u3 as u3
@@ -1194,6 +1275,38 @@ class TestControlledStandardGates(QiskitTestCase):
                                                      ctrl_state=ctrl_state)
                 self.assertEqual(Operator(cgate), Operator(target_mat))
 
+    @combine(num_ctrl_qubits=[1,2,3],
+             gate_class=[cls for cls in allGates.__dict__.values() if isinstance(cls, type)])
+    def test_controlled_circuit_equal_controlled_gate(self, num_ctrl_qubits, gate_class):
+        """Test controlling a gate in a circuit is equivalent to controlling the gate itself."""
+        theta = pi / 5
+
+        numargs = len(_get_free_params(gate_class))
+        args = [theta] * numargs
+        if gate_class in [MSGate, Barrier]:
+            args[0] = 2
+        elif gate_class in [MCU1Gate, MCPhaseGate]:
+            args[1] = 2
+        elif issubclass(gate_class, MCXGate):
+            args = [5]
+
+        gate = gate_class(*args)
+
+        qc = QuantumCircuit(gate.num_qubits)
+        qc.append(gate, list(range(gate.num_qubits)))
+
+        if hasattr(gate, 'num_ancilla_qubits') and gate.num_ancilla_qubits > 0:
+            # skip matrices that include ancilla qubits
+            return
+        try:
+            cgate = gate.control(num_ctrl_qubits)
+            cqc = qc.control(num_ctrl_qubits)
+        except (AttributeError, QiskitError):
+            # 'object has no attribute "control"'
+            # skipping Id and Barrier
+            return
+
+        self.assertTrue(Operator(cqc).equiv(Operator(cgate)))
 
 @ddt
 class TestParameterCtrlState(QiskitTestCase):
