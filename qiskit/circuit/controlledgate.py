@@ -171,19 +171,16 @@ class ControlledGate(Gate):
 
     @property
     def params(self):
-        """Get parameters from base_gate.
+        """Get parameters from base_gate if defined, otherwise from this gate.
 
         Returns:
             list: List of gate parameters.
-
-        Raises:
-            CircuitError: Controlled gate does not define a base gate
         """
         if self.base_gate:
             return self.base_gate.params
         else:
-            raise CircuitError('Controlled gate does not define base gate '
-                               'for extracting params')
+            # opaque controlled gate? fall back to self
+            return super().params
 
     @params.setter
     def params(self, parameters):
@@ -191,19 +188,17 @@ class ControlledGate(Gate):
 
         Args:
             parameters (list): The list of parameters to set.
-
-        Raises:
-            CircuitError: If controlled gate does not define a base gate.
         """
         if self.base_gate:
             self.base_gate.params = parameters
         else:
-            raise CircuitError('Controlled gate does not define base gate '
-                               'for extracting params')
+            # opaque controlled gate? fall back to self
+            super(Gate, self.__class__).params.fset(self, parameters)
 
     def __deepcopy__(self, _memo=None):
         cpy = copy.copy(self)
-        cpy.base_gate = self.base_gate.copy()
+        if self.base_gate:
+            cpy.base_gate = self.base_gate.copy()
         if self._definition:
             cpy._definition = copy.deepcopy(self._definition, _memo)
         return cpy

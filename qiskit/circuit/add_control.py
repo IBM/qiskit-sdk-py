@@ -13,6 +13,7 @@
 """Add control to operation if supported."""
 
 from typing import Union, Optional
+import re
 
 from qiskit.circuit.exceptions import CircuitError
 from qiskit.extensions import UnitaryGate
@@ -65,7 +66,6 @@ def add_control(operation: Union[Gate, ControlledGate],
         # attempt decomposition
         operation._define()
     cgate = control(operation, num_ctrl_qubits=num_ctrl_qubits, label=label, ctrl_state=ctrl_state)
-    cgate.base_gate.label = operation.label
     return cgate
 
 
@@ -98,6 +98,45 @@ def control(operation: Union[Gate, ControlledGate],
     # pylint: disable=cyclic-import
     import qiskit.circuit.controlledgate as controlledgate
 
+    if isinstance(operation, controlledgate.ControlledGate):
+        new_num_ctrl_qubits = num_ctrl_qubits + operation.num_ctrl_qubits
+        new_ctrl_state = operation.ctrl_state << num_ctrl_qubits | ctrl_state
+        if operation.base_gate:
+            base_gate = operation.base_gate
+            base_name = operation.base_gate.name
+        else:
+            base_gate = None
+            base_name = re.sub(r'^c+\d*', '', operation.name)
+    else:
+        new_num_ctrl_qubits = num_ctrl_qubits
+        new_ctrl_state = ctrl_state
+        base_gate = operation
+        base_name = operation.name
+    # In order to maintain some backward compatibility with gate names this
+    # uses a naming convention where if the number of controls is <=2 the gate
+    # is named like "cc<base_gate.name>", else it is named like
+    # "c<num_ctrl_qubits><base_name>".
+    if new_num_ctrl_qubits > 2:
+        ctrl_substr = 'c{0:d}'.format(new_num_ctrl_qubits)
+    else:
+        ctrl_substr = ('{0}' * new_num_ctrl_qubits).format('c')
+    new_name = '{0}{1}'.format(ctrl_substr, base_name)
+
+    # detect opaque gate
+    if not operation.definition or not operation._definition:
+        # since u3, cx, and i are opaque-like we want to distinguish them here;
+        if operation.__class__ in [Gate, ControlledGate]:
+            cgate = controlledgate.ControlledGate(
+                new_name,
+                operation.num_qubits + num_ctrl_qubits,
+                operation.params,
+                label=label,
+                num_ctrl_qubits=new_num_ctrl_qubits,
+                definition=None,
+                ctrl_state=new_ctrl_state)
+            cgate.base_gate = base_gate
+            return cgate
+
     q_control = QuantumRegister(num_ctrl_qubits, name='control')
     q_target = QuantumRegister(operation.num_qubits, name='target')
     q_ancillae = None  # TODO: add
@@ -106,12 +145,12 @@ def control(operation: Union[Gate, ControlledGate],
     global_phase = 0
     if operation.name == 'x' or (
             isinstance(operation, controlledgate.ControlledGate) and
-            operation.base_gate.name == 'x'):
+            operation.base_gate and operation.base_gate.name == 'x'):
         controlled_circ.mct(q_control[:] + q_target[:-1], q_target[-1], q_ancillae)
         if operation.definition is not None and operation.definition.global_phase:
             global_phase += operation.definition.global_phase
     else:
-        basis = ['u1', 'u3', 'x', 'rx', 'ry', 'rz', 'cx']
+        basis = ['u1', 'u3', 'x', 'rx', 'ry', 'rz', 'cx', 'id']
         unrolled_gate = _unroll_gate(operation, basis_gates=basis)
         for gate, qreg, _ in unrolled_gate.definition.data:
             if gate.name == 'x':
@@ -154,6 +193,8 @@ def control(operation: Union[Gate, ControlledGate],
                                          q_ancillae, use_basis_gates=True)
                     controlled_circ.mcrz(phi, q_control, q_target[qreg[0].index],
                                          use_basis_gates=True)
+            elif gate.name == 'id':
+                controlled_circ.i(q_control[:] + q_target[:])
             else:
                 raise CircuitError('gate contains non-controllable instructions: {}'.format(
                     gate.name))
@@ -166,33 +207,15 @@ def control(operation: Union[Gate, ControlledGate],
         else:
             controlled_circ.mcu1(operation.definition.global_phase + global_phase,
                                  q_control[:-1], q_control[-1])
-    if isinstance(operation, controlledgate.ControlledGate):
-        new_num_ctrl_qubits = num_ctrl_qubits + operation.num_ctrl_qubits
-        new_ctrl_state = operation.ctrl_state << num_ctrl_qubits | ctrl_state
-        base_name = operation.base_gate.name
-        base_gate = operation.base_gate
-    else:
-        new_num_ctrl_qubits = num_ctrl_qubits
-        new_ctrl_state = ctrl_state
-        base_name = operation.name
-        base_gate = operation
-    # In order to maintain some backward compatibility with gate names this
-    # uses a naming convention where if the number of controls is <=2 the gate
-    # is named like "cc<base_gate.name>", else it is named like
-    # "c<num_ctrl_qubits><base_name>".
-    if new_num_ctrl_qubits > 2:
-        ctrl_substr = 'c{:d}'.format(new_num_ctrl_qubits)
-    else:
-        ctrl_substr = ('{0}' * new_num_ctrl_qubits).format('c')
-    new_name = '{}{}'.format(ctrl_substr, base_name)
     cgate = controlledgate.ControlledGate(new_name,
                                           controlled_circ.num_qubits,
                                           operation.params,
                                           label=label,
                                           num_ctrl_qubits=new_num_ctrl_qubits,
                                           definition=controlled_circ,
-                                          ctrl_state=new_ctrl_state,
-                                          base_gate=base_gate)
+                                          ctrl_state=new_ctrl_state)
+    cgate.base_gate = base_gate
+    cgate.base_gate.label = operation.label
     return cgate
 
 
@@ -201,7 +224,7 @@ def _gate_to_circuit(operation):
     qc = QuantumCircuit(qr, name=operation.name)
     if hasattr(operation, 'definition') and operation.definition:
         for rule in operation.definition.data:
-            if rule[0].name in {'id', 'barrier', 'measure', 'snapshot'}:
+            if rule[0].name in {'barrier', 'measure', 'snapshot'}:
                 raise CircuitError('Cannot make controlled gate with {} instruction'.format(
                     rule[0].name))
             qc.append(rule[0], qargs=[qr[bit.index] for bit in rule[1]], cargs=[])
