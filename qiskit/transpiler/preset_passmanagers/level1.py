@@ -40,7 +40,7 @@ from qiskit.transpiler.passes import EnlargeWithAncilla
 from qiskit.transpiler.passes import FixedPoint
 from qiskit.transpiler.passes import Depth
 from qiskit.transpiler.passes import RemoveResetInZeroState
-from qiskit.transpiler.passes import Optimize1qGates
+from qiskit.transpiler.passes import Collapse1qChains
 from qiskit.transpiler.passes import ApplyLayout
 from qiskit.transpiler.passes import CheckCXDirection
 from qiskit.transpiler.passes import Layout2qDistance
@@ -152,7 +152,8 @@ def level_1_pass_manager(pass_manager_config: PassManagerConfig) -> PassManager:
             Unroll3qOrMore(),
             Collect2qBlocks(),
             ConsolidateBlocks(basis_gates=basis_gates),
-            UnitarySynthesis(basis_gates),
+            Collapse1qChains(basis_gates=basis_gates),
+            UnitarySynthesis(basis_gates=basis_gates),
         ]
     else:
         raise TranspilerError("Invalid translation method %s." % translation_method)
@@ -168,13 +169,22 @@ def level_1_pass_manager(pass_manager_config: PassManagerConfig) -> PassManager:
     # 8. Remove zero-state reset
     _reset = RemoveResetInZeroState()
 
-    # 9. Merge 1q rotations and cancel CNOT gates iteratively until no more change in depth
+    # 9. Optimize single-qubit gates and cancel CNOT gates iteratively
+    # until no more change in depth. If basis_gate is None, we interpret that
+    # to mean the final circuit should be over the original circuit gates. Since
+    # our optimizations require an intermediary mapping to U3 gates and it's
+    # hard to recover the original gates, we forego optimizations in this case.
     _depth_check = [Depth(), FixedPoint('depth')]
 
     def _opt_control(property_set):
         return not property_set['depth_fixed_point']
 
-    _opt = [Optimize1qGates(basis_gates), CXCancellation()]
+    if basis_gates is None:
+        _opt = [CXCancellation()]
+    else:
+        _opt = [Collapse1qChains(basis_gates=basis_gates),
+                UnitarySynthesis(basis_gates=basis_gates),
+                CXCancellation()]
 
     # 10. Schedule the circuit only when scheduling_method is supplied
     if scheduling_method:

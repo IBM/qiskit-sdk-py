@@ -14,14 +14,14 @@
 """
 Decompose a single-qubit unitary via Euler angles.
 """
-
+import warnings
 import math
 import numpy as np
 import scipy.linalg as la
 
 from qiskit.circuit.quantumcircuit import QuantumCircuit
-from qiskit.circuit.library.standard_gates import (U3Gate, U1Gate, RXGate, RYGate, RZGate,
-                                                   RGate)
+from qiskit.circuit.library.standard_gates import (UGate, PhaseGate, RXGate, RYGate, RZGate,
+                                                   SXGate, RGate, U1Gate, U2Gate, U3Gate)
 from qiskit.exceptions import QiskitError
 from qiskit.quantum_info.operators.predicates import is_unitary_matrix
 
@@ -35,7 +35,7 @@ class OneQubitEulerDecomposer:
     parameters :math:`(\theta, \phi, \lambda)`, and a phase parameter
     :math:`\gamma`. The value of the parameters for an input unitary depends
     on the decomposition basis. Allowed bases and the resulting circuits are
-    shown in the following table. Note that for the non-Euler bases (U3, U1X,
+    shown in the following table. Note that for the non-Euler bases (U, PSX,
     RR), the ZYZ euler parameters are used.
 
     .. list-table:: Supported circuit bases
@@ -54,10 +54,10 @@ class OneQubitEulerDecomposer:
         * - 'XYX'
           - :math:`X(\phi) Y(\theta) X(\lambda)`
           - :math:`e^{i\gamma} R_X(\phi).R_Y(\theta).R_X(\lambda)`
-        * - 'U3'
+        * - 'U'
           - :math:`Z(\phi) Y(\theta) Z(\lambda)`
-          - :math:`e^{i\gamma} U_3(\theta,\phi,\lambda)`
-        * - 'U1X'
+          - :math:`e^{i\gamma} U(\theta,\phi,\lambda)`
+        * - 'PSX'
           - :math:`Z(\phi) Y(\theta) Z(\lambda)`
           - :math:`e^{i\gamma} U_1(\phi+\pi).R_X\left(\frac{\pi}{2}\right).`
             :math:`U_1(\theta+\pi).R_X\left(\frac{\pi}{2}\right).U_1(\lambda)`
@@ -67,13 +67,13 @@ class OneQubitEulerDecomposer:
             :math:`R\left(\theta+\pi,\frac{\pi}{2}-\lambda\right)`
     """
 
-    def __init__(self, basis='U3'):
+    def __init__(self, basis='U'):
         """Initialize decomposer
 
-        Supported bases are: 'U3', 'U1X', 'RR', 'ZYZ', 'ZXZ', 'XYX'.
+        Supported bases are: 'U', 'PSX', 'RR', 'ZYZ', 'ZXZ', 'XYX'.
 
         Args:
-            basis (str): the decomposition basis [Default: 'U3']
+            basis (str): the decomposition basis [Default: 'U']
 
         Raises:
             QiskitError: If input basis is not recognized.
@@ -132,13 +132,19 @@ class OneQubitEulerDecomposer:
     def basis(self, basis):
         """Set the decomposition basis."""
         basis_methods = {
-            'U3': (self._params_u3, self._circuit_u3),
-            'U1X': (self._params_u1x, self._circuit_u1x),
+            'U': (self._params_u, self._circuit_u),
+            'U3': (self._params_u, self._circuit_u3),
+            'U1U2U3': (self._params_u, self._circuit_u1u2u3),
+            'PSX': (self._params_psx, self._circuit_psx),
             'RR': (self._params_zyz, self._circuit_rr),
             'ZYZ': (self._params_zyz, self._circuit_zyz),
             'ZXZ': (self._params_zxz, self._circuit_zxz),
             'XYX': (self._params_xyx, self._circuit_xyx)
         }
+        if basis == 'U1X':
+            warnings.warn('Deprecated U1X basis, use PSX (phase + square-root(X)) instead.',
+                          DeprecationWarning)
+            basis = 'PSX'
         if basis not in basis_methods:
             raise QiskitError("OneQubitEulerDecomposer: unsupported basis {}".format(basis))
         self._basis = basis
@@ -185,13 +191,14 @@ class OneQubitEulerDecomposer:
         phimlambda = 2 * np.angle(su_mat[1, 0])
         phi = (phiplambda + phimlambda) / 2.0
         lam = (phiplambda - phimlambda) / 2.0
-        return theta, phi, lam, phase
+        return _mod2pi(theta), _mod2pi(phi), _mod2pi(lam), _mod2pi(phase)
 
     @staticmethod
     def _params_zxz(mat):
         """Return the euler angles and phase for the ZXZ basis."""
         theta, phi, lam, phase = OneQubitEulerDecomposer._params_zyz(mat)
-        return theta, phi + np.pi / 2, lam - np.pi / 2, phase
+        return (_mod2pi(theta), _mod2pi(phi + np.pi / 2),
+                _mod2pi(lam - np.pi / 2), _mod2pi(phase))
 
     @staticmethod
     def _params_xyx(mat):
@@ -209,26 +216,28 @@ class OneQubitEulerDecomposer:
              ]],
             dtype=complex)
         theta, phi, lam, phase = OneQubitEulerDecomposer._params_zyz(mat_zyz)
-        return -theta, phi, lam, phase
+        return _mod2pi(-theta), _mod2pi(phi), _mod2pi(lam), _mod2pi(phase)
 
     @staticmethod
-    def _params_u3(mat):
-        """Return the euler angles and phase for the U3 basis."""
-        # The determinant of U3 gate depends on its params
-        # via det(u3(theta, phi, lam)) = exp(1j*(phi+lam))
+    def _params_u(mat):
+        """Return the euler angles and phase for the U basis."""
+        # The determinant of U gate depends on its params
+        # via det(u(theta, phi, lam)) = exp(1j*(phi+lam))
         # Since the phase is wrt to a SU matrix we must rescale
         # phase to correct this
         theta, phi, lam, phase = OneQubitEulerDecomposer._params_zyz(mat)
-        return theta, phi, lam, phase - 0.5 * (phi + lam)
+        return (_mod2pi(theta), _mod2pi(phi), _mod2pi(lam),
+                _mod2pi(phase - 0.5 * (phi + lam)))
 
     @staticmethod
-    def _params_u1x(mat):
-        """Return the euler angles and phase for the U1X basis."""
+    def _params_psx(mat):
+        """Return the euler angles and phase for the PSX basis."""
         # The determinant of this decomposition depends on its params
         # Since the phase is wrt to a SU matrix we must rescale
         # phase to correct this
         theta, phi, lam, phase = OneQubitEulerDecomposer._params_zyz(mat)
-        return theta, phi, lam, phase - 0.5 * (theta + phi + lam)
+        return (_mod2pi(theta), _mod2pi(phi), _mod2pi(lam),
+                _mod2pi(phase - 0.5 * (theta + phi + lam)))
 
     @staticmethod
     def _circuit_zyz(theta,
@@ -286,6 +295,17 @@ class OneQubitEulerDecomposer:
         return circuit
 
     @staticmethod
+    def _circuit_u(theta,
+                   phi,
+                   lam,
+                   simplify=True,
+                   atol=DEFAULT_ATOL):
+        # pylint: disable=unused-argument
+        circuit = QuantumCircuit(1)
+        circuit.append(UGate(theta, phi, lam), [0])
+        return circuit
+
+    @staticmethod
     def _circuit_u3(theta,
                     phi,
                     lam,
@@ -297,35 +317,56 @@ class OneQubitEulerDecomposer:
         return circuit
 
     @staticmethod
-    def _circuit_u1x(theta,
+    def _circuit_u1u2u3(theta,
+                        phi,
+                        lam,
+                        simplify=True,
+                        atol=DEFAULT_ATOL):
+        # pylint: disable=unused-argument
+        circuit = QuantumCircuit(1)
+        new_op = U3Gate(theta, phi, lam)
+        if simplify and np.isclose(theta, [0., 2*np.pi], atol=atol).any():
+            if np.isclose(_mod2pi(phi+lam), [0., 2*np.pi], atol=atol).any():
+                new_op = None
+            else:
+                new_op = U1Gate(_mod2pi(phi+lam))
+        elif simplify and np.isclose(theta, [np.pi/2, 3*np.pi/2], atol=atol).any():
+            new_op = U2Gate(_mod2pi(phi+theta-np.pi/2), _mod2pi(lam+theta-np.pi/2))
+        if new_op is not None:
+            circuit.append(new_op, [0])
+        return circuit
+
+    @staticmethod
+    def _circuit_psx(theta,
                      phi,
                      lam,
                      simplify=True,
                      atol=DEFAULT_ATOL):
         # Shift theta and phi so decomposition is
-        # U1(phi).X90.U1(theta).X90.U1(lam)
-        theta += np.pi
-        phi += np.pi
-        # Check for decomposition into minimimal number required X90 pulses
-        if simplify and np.isclose(abs(theta), np.pi, atol=atol):
-            # Zero X90 gate decomposition
-            circuit = QuantumCircuit(1)
-            circuit.append(U1Gate(lam + phi + theta), [0])
-            return circuit
-        if simplify and np.isclose(abs(theta), np.pi/2, atol=atol):
-            # Single X90 gate decomposition
-            circuit = QuantumCircuit(1)
-            circuit.append(U1Gate(lam + theta), [0])
-            circuit.append(RXGate(np.pi / 2), [0])
-            circuit.append(U1Gate(phi + theta), [0])
-            return circuit
-        # General two-X90 gate decomposition
+        # Phase(phi+pi).SX.Phase(theta+pi).SX.Phase(lam)
+        theta = _mod2pi(theta + np.pi)
+        phi = _mod2pi(phi + np.pi)
+        print('theta, phi ', theta, phi)
         circuit = QuantumCircuit(1)
-        circuit.append(U1Gate(lam), [0])
-        circuit.append(RXGate(np.pi / 2), [0])
-        circuit.append(U1Gate(theta), [0])
-        circuit.append(RXGate(np.pi / 2), [0])
-        circuit.append(U1Gate(phi), [0])
+        # Check for decomposition into minimimal number required SX gates
+        if simplify and np.isclose(abs(theta), np.pi, atol=atol):
+            if not np.isclose(_mod2pi(lam + phi + theta), [0., 2*np.pi], atol=atol).any():
+                circuit.append(PhaseGate(_mod2pi(lam + phi + theta)), [0])
+        elif simplify and np.isclose(abs(theta), [np.pi/2, 3*np.pi/2], atol=atol).any():
+            if not np.isclose(_mod2pi(lam + theta), [0., 2*np.pi], atol=atol).any():
+                circuit.append(PhaseGate(_mod2pi(lam + theta)), [0])
+            circuit.append(SXGate(), [0])
+            if not np.isclose(_mod2pi(phi + theta), [0., 2*np.pi], atol=atol).any():
+                circuit.append(PhaseGate(_mod2pi(phi + theta)), [0])
+        else:
+            if not np.isclose(lam, [0., 2*np.pi], atol=atol).any():
+                circuit.append(PhaseGate(lam), [0])
+            circuit.append(SXGate(), [0])
+            if not np.isclose(theta, [0., 2*np.pi], atol=atol).any():
+                circuit.append(PhaseGate(theta), [0])
+            circuit.append(SXGate(), [0])
+            if not np.isclose(phi, [0., 2*np.pi], atol=atol).any():
+                circuit.append(PhaseGate(phi), [0])
         return circuit
 
     @staticmethod
@@ -339,3 +380,10 @@ class OneQubitEulerDecomposer:
             circuit.append(RGate(theta + np.pi, np.pi / 2 - lam), [0])
         circuit.append(RGate(-np.pi, 0.5 * (phi - lam + np.pi)), [0])
         return circuit
+
+
+def _mod2pi(angle):
+    if angle >= 0:
+        return np.mod(angle, 2*np.pi)
+    else:
+        return np.mod(angle, -2*np.pi)

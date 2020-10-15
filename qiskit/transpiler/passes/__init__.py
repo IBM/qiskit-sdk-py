@@ -64,15 +64,18 @@ Optimizations
    :toctree: ../stubs/
 
    Optimize1qGates
+   Collapse1qChains
    Collect2qBlocks
    ConsolidateBlocks
-   CXCancellation
    CommutationAnalysis
    CommutativeCancellation
+   CXCancellation
    RemoveDiagonalGatesBeforeMeasure
    RemoveResetInZeroState
+   OptimizeSwapBeforeMeasure
    CrosstalkAdaptiveSchedule
    TemplateOptimization
+   HoareOptimizer
 
 Scheduling
 =============
@@ -149,14 +152,15 @@ from .basis import BasisTranslator
 
 # optimization
 from .optimization import Optimize1qGates
+from .optimization import Collapse1qChains
 from .optimization import Collect2qBlocks
 from .optimization import ConsolidateBlocks
 from .optimization import CommutationAnalysis
 from .optimization import CommutativeCancellation
 from .optimization import CXCancellation
-from .optimization import OptimizeSwapBeforeMeasure
-from .optimization import RemoveResetInZeroState
 from .optimization import RemoveDiagonalGatesBeforeMeasure
+from .optimization import RemoveResetInZeroState
+from .optimization import OptimizeSwapBeforeMeasure
 from .optimization import CrosstalkAdaptiveSchedule
 from .optimization import HoareOptimizer
 from .optimization import TemplateOptimization

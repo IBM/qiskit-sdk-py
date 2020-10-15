@@ -29,7 +29,7 @@ from qiskit.circuit import Parameter, Gate
 from qiskit.compiler import transpile
 from qiskit.converters import circuit_to_dag
 from qiskit.dagcircuit.exceptions import DAGCircuitError
-from qiskit.circuit.library import CXGate, U3Gate, U2Gate, U1Gate
+from qiskit.circuit.library import CXGate, U2Gate, U1Gate
 from qiskit.test import QiskitTestCase, Path
 from qiskit.test.mock import FakeMelbourne, FakeRueschlikon, FakeAlmaden
 from qiskit.transpiler import Layout, CouplingMap
@@ -501,7 +501,7 @@ class TestTranspile(QiskitTestCase):
             self.assertFalse(mock_pass.called)
 
     def test_optimize_to_nothing(self):
-        """ Optimize gates up to fixed point in the default pipeline
+        """Optimize gates up to fixed point in the default pipeline
         See https://github.com/Qiskit/qiskit-terra/issues/2035 """
         qr = QuantumRegister(2)
         circ = QuantumCircuit(qr)
@@ -514,9 +514,11 @@ class TestTranspile(QiskitTestCase):
         circ.h(qr[0])
         circ.cx(qr[0], qr[1])
         circ.cx(qr[0], qr[1])
+        circ.s(qr[1])
+        circ.sdg(qr[1])
 
         after = transpile(circ, coupling_map=[[0, 1], [1, 0]],
-                          basis_gates=['u3', 'cx'])
+                          basis_gates=['p', 'sx', 'cx'])
 
         expected = QuantumCircuit(QuantumRegister(2, 'q'))
         self.assertEqual(after, expected)
@@ -551,7 +553,8 @@ class TestTranspile(QiskitTestCase):
             self._get_resource_path('move_measurements.qasm', Path.QASMS))
 
         lay = [0, 1, 15, 2, 14, 3, 13, 4, 12, 5, 11, 6]
-        out = transpile(circ, initial_layout=lay, coupling_map=cmap)
+        out = transpile(circ, initial_layout=lay, coupling_map=cmap,
+                        basis_gates=['u1', 'u2', 'u3', 'cx'])
         out_dag = circuit_to_dag(out)
         meas_nodes = out_dag.named_nodes('measure')
         for meas_node in meas_nodes:
@@ -567,11 +570,11 @@ class TestTranspile(QiskitTestCase):
         qc.initialize([1.0 / math.sqrt(2), -1.0 / math.sqrt(2)], [qr[0]])
 
         expected = QuantumCircuit(qr)
-        expected.append(U3Gate(1.5708, 0, 0), [qr[0]])
+        expected.u(1.5708, 0, 0, qr[0])
         expected.reset(qr[0])
-        expected.append(U3Gate(1.5708, 3.1416, 0), [qr[0]])
+        expected.u(1.5708, 3.1416, 0, qr[0])
 
-        after = transpile(qc, basis_gates=['reset', 'u3'], optimization_level=1)
+        after = transpile(qc, basis_gates=['reset', 'u'], optimization_level=1)
         self.assertEqual(after, expected)
 
     def test_initialize_FakeMelbourne(self):
@@ -625,11 +628,11 @@ class TestTranspile(QiskitTestCase):
                 [13, 12]]
 
         circuit = transpile(qc, backend=None, coupling_map=cmap,
-                            basis_gates=['u3'], initial_layout=layout)
+                            basis_gates=['u'], initial_layout=layout)
 
         dag_circuit = circuit_to_dag(circuit)
         resources_after = dag_circuit.count_ops()
-        self.assertEqual({'u3': 1}, resources_after)
+        self.assertEqual({'u': 1}, resources_after)
 
     def test_check_circuit_width(self):
         """Verify transpilation of circuit with virtual qubits greater than
@@ -684,7 +687,7 @@ class TestTranspile(QiskitTestCase):
 
     @data(0, 1, 2, 3)
     def test_measure_doesnt_unroll_ms(self, optimization_level):
-        """Verify a measure doesn't cause an Rx,Ry,Rxx circuit to unroll to U3,CX."""
+        """Verify a measure doesn't cause an Rx,Ry,Rxx circuit to unroll to U,CX."""
 
         qc = QuantumCircuit(2, 2)
         qc.rx(math.pi / 2, 0)
@@ -694,7 +697,9 @@ class TestTranspile(QiskitTestCase):
 
         out = transpile(qc, basis_gates=['rx', 'ry', 'rxx'], optimization_level=optimization_level)
 
-        self.assertEqual(qc, out)
+        self.assertIn('rx', out.count_ops())
+        self.assertIn('ry', out.count_ops())
+        self.assertIn('rxx', out.count_ops())
 
     @data(
         ['cx', 'u3'],
@@ -739,7 +744,7 @@ class TestTranspile(QiskitTestCase):
     @combine(
         optimization_level=[0, 1, 2, 3],
         basis_gates=[
-            ['u3', 'cx'],
+            ['u', 'cx'],
             ['rx', 'rz', 'iswap'],
             ['rx', 'ry', 'rxx'],
         ],
@@ -772,7 +777,6 @@ class TestTranspile(QiskitTestCase):
         with pulse.build() as q1_y90:
             pulse.play(pulse.library.Gaussian(20, -1.0, 3.0), pulse.DriveChannel(1))
 
-        # Add calibration
         circ.add_calibration(custom_180, [0], q0_x180)
         circ.add_calibration(custom_90, [1], q1_y90)
 
@@ -793,7 +797,6 @@ class TestTranspile(QiskitTestCase):
         with pulse.build() as q0_x180:
             pulse.play(pulse.library.Gaussian(20, 1.0, 3.0), pulse.DriveChannel(0))
 
-        # Add calibration
         circ.add_calibration("h", [0], q0_x180)
 
         backend = FakeAlmaden()
@@ -813,7 +816,6 @@ class TestTranspile(QiskitTestCase):
         with pulse.build() as q0_x180:
             pulse.play(pulse.library.Gaussian(20, 1.0, 3.0), pulse.DriveChannel(0))
 
-        # Add calibration
         circ.add_calibration(custom_180, [1], q0_x180)
 
         backend = FakeAlmaden()
@@ -830,7 +832,6 @@ class TestTranspile(QiskitTestCase):
         with pulse.build() as q0_x180:
             pulse.play(pulse.library.Gaussian(20, 1.0, 3.0), pulse.DriveChannel(0))
 
-        # Add calibration
         circ.add_calibration("h", [1], q0_x180)
 
         backend = FakeAlmaden()

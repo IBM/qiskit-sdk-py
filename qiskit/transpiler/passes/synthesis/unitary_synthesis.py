@@ -19,7 +19,6 @@ from qiskit.converters import circuit_to_dag
 from qiskit.transpiler.basepasses import TransformationPass
 from qiskit.dagcircuit.dagcircuit import DAGCircuit
 from qiskit.circuit.library.standard_gates import iSwapGate, CXGate, CZGate, RXXGate
-from qiskit.extensions.quantum_initializer import isometry
 from qiskit.quantum_info.synthesis.one_qubit_decompose import OneQubitEulerDecomposer
 from qiskit.quantum_info.synthesis.two_qubit_decompose import TwoQubitBasisDecomposer
 
@@ -46,12 +45,15 @@ def _choose_euler_basis(basis_gates):
     """"Choose the first available 1q basis to use in the Euler decomposition."""
 
     euler_basis_names = {
-        'U3': ['u3'],
-        'U1X': ['u1', 'rx'],
+        'U': ['u'],
+        'PSX': ['p', 'sx'],
         'RR': ['r'],
         'ZYZ': ['rz', 'ry'],
         'ZXZ': ['rz', 'rx'],
         'XYX': ['rx', 'ry'],
+        'U1U2U3': ['u1', 'u2', 'u3'],  # deprecated since 0.16
+        'U3': ['u3'],                  # deprecated since 0.16
+        'U1X': ['u1', 'rx']            # deprecated since 0.16
     }
 
     basis_set = set(basis_gates or [])
@@ -67,7 +69,7 @@ class UnitarySynthesis(TransformationPass):
     """Synthesize gates according to their basis gates."""
 
     def __init__(self, basis_gates: List[str]):
-        """SynthesizeUnitaries initializer.
+        """UnitarySynthesis initializer.
 
         Args:
             basis_gates: List of gate names to target.
@@ -86,7 +88,6 @@ class UnitarySynthesis(TransformationPass):
         """
         euler_basis = _choose_euler_basis(self._basis_gates)
         kak_gate = _choose_kak_gate(self._basis_gates)
-
         decomposer1q, decomposer2q = None, None
         if euler_basis is not None:
             decomposer1q = OneQubitEulerDecomposer(euler_basis)
@@ -105,8 +106,7 @@ class UnitarySynthesis(TransformationPass):
                     continue
                 synth_dag = circuit_to_dag(decomposer2q(node.op.to_matrix()))
             else:
-                synth_dag = circuit_to_dag(
-                    isometry.Isometry(node.op.to_matrix(), 0, 0).definition)
+                continue
 
             dag.substitute_node_with_dag(node, synth_dag)
 

@@ -42,7 +42,7 @@ from qiskit.transpiler.passes import EnlargeWithAncilla
 from qiskit.transpiler.passes import FixedPoint
 from qiskit.transpiler.passes import Depth
 from qiskit.transpiler.passes import RemoveResetInZeroState
-from qiskit.transpiler.passes import Optimize1qGates
+from qiskit.transpiler.passes import Collapse1qChains
 from qiskit.transpiler.passes import CommutativeCancellation
 from qiskit.transpiler.passes import OptimizeSwapBeforeMeasure
 from qiskit.transpiler.passes import RemoveDiagonalGatesBeforeMeasure
@@ -150,7 +150,8 @@ def level_3_pass_manager(pass_manager_config: PassManagerConfig) -> PassManager:
             Unroll3qOrMore(),
             Collect2qBlocks(),
             ConsolidateBlocks(basis_gates=basis_gates),
-            UnitarySynthesis(basis_gates),
+            Collapse1qChains(basis_gates=basis_gates),
+            UnitarySynthesis(basis_gates=basis_gates),
         ]
     else:
         raise TranspilerError("Invalid translation method %s." % translation_method)
@@ -163,8 +164,11 @@ def level_3_pass_manager(pass_manager_config: PassManagerConfig) -> PassManager:
 
     _direction = [CXDirection(coupling_map)]
 
-    # 8. Optimize iteratively until no more change in depth. Removes useless gates
-    # after reset and before measure, commutes gates and optimizes continguous blocks.
+    # 8. Optimize single-qubit and two-qubit chains of gates iteratively
+    # until no more change in depth. If basis_gate is None, we interpret that
+    # to mean the final circuit should be over the original circuit gates. Since
+    # our optimizations require an intermediary mapping to U3 gates and it's
+    # hard to recover the original gates, we forego optimizations in this case.
     _depth_check = [Depth(), FixedPoint('depth')]
 
     def _opt_control(property_set):
@@ -174,13 +178,16 @@ def level_3_pass_manager(pass_manager_config: PassManagerConfig) -> PassManager:
 
     _meas = [OptimizeSwapBeforeMeasure(), RemoveDiagonalGatesBeforeMeasure()]
 
-    _opt = [
-        Collect2qBlocks(),
-        ConsolidateBlocks(basis_gates=basis_gates),
-        UnitarySynthesis(basis_gates),
-        Optimize1qGates(basis_gates),
-        CommutativeCancellation(),
-    ]
+    if basis_gates is None:
+        _opt = [CommutativeCancellation()]
+    else:
+        _opt = [
+            Collect2qBlocks(),
+            ConsolidateBlocks(basis_gates=basis_gates),
+            Collapse1qChains(basis_gates=basis_gates),
+            UnitarySynthesis(basis_gates=basis_gates),
+            CommutativeCancellation()
+        ]
 
     # Schedule the circuit only when scheduling_method is supplied
     if scheduling_method:
