@@ -34,7 +34,11 @@ class FakeQasmSimulator(FakeBackend):
             open_pulse=False,
             memory=True,
             max_shots=65536,
-            gates=[GateConfig(name='TODO', parameters=[], qasm_def='TODO')]
+            gates=[GateConfig(name='TODO', parameters=[], qasm_def='TODO')],
+            meas_kernels=['hw_boxcar'],
+            discriminators=['linear_discriminator', 'quadratic_discriminator'],
+            default_meas_kernel='hw_boxcar',
+            default_discriminator='linear_discriminator'
         )
 
         super().__init__(configuration)
