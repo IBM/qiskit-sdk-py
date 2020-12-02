@@ -21,6 +21,7 @@ from qiskit.exceptions import QiskitError
 from qiskit.circuit import QuantumCircuit
 from qiskit.circuit import QuantumRegister
 from qiskit.circuit import Instruction
+from qiskit.circuit.gate import Gate
 from qiskit.circuit.exceptions import CircuitError
 from qiskit.circuit.library.standard_gates.x import CXGate, XGate
 from qiskit.circuit.library.standard_gates.h import HGate
@@ -32,17 +33,15 @@ from qiskit.circuit.reset import Reset
 _EPS = 1e-10  # global variable used to chop very small numbers to zero
 
 
-class Initialize(Instruction):
+class InitializeGate(Gate):
     """Complex amplitude initialization.
 
     Class that implements the (complex amplitude) initialization of some
     flexible collection of qubit registers (assuming the qubits are in the
     zero state).
-    Note that Initialize is an Instruction and not a Gate since it contains a reset instruction,
-    which is not unitary.
     """
 
-    def __init__(self, params):
+    def __init__(self, params, label=None):
         """Create new initialize composite.
 
         params (str or list):
@@ -56,13 +55,20 @@ class Initialize(Instruction):
         if isinstance(params, str):
             self._fromlabel = True
             num_qubits = len(params)
+        elif isinstance(params, list) and isinstance(params[0], str):
+            self._fromlabel = True
+            params = "".join(params)
+            num_qubits = len(params)
         else:
             self._fromlabel = False
-            num_qubits = math.log2(len(params))
+            try:
+                num_qubits = math.log2(len(params))
+            except (ValueError, TypeError):
+                raise QiskitError("Given params are not a statevector")
 
             # Check if param is a power of 2
             if num_qubits == 0 or not num_qubits.is_integer():
-                raise QiskitError("Desired statevector length not a positive power of 2.")
+                raise QiskitError("Desired statevector length is not a power of 2.")
 
             # Check if probabilities (amplitudes squared) sum to 1
             if not math.isclose(sum(np.absolute(params) ** 2), 1.0,
@@ -71,7 +77,7 @@ class Initialize(Instruction):
 
             num_qubits = int(num_qubits)
 
-        super().__init__("initialize", num_qubits, 0, params)
+        super().__init__('init', int(num_qubits), params, label=label)
 
     def _define(self):
         self.definition = self._define_fromlabel() if self._fromlabel else self._define_synthesis()
@@ -118,8 +124,6 @@ class Initialize(Instruction):
 
         q = QuantumRegister(self.num_qubits, 'q')
         initialize_circuit = QuantumCircuit(q, name='init_def')
-        for qubit in q:
-            initialize_circuit.append(Reset(), [qubit])
         initialize_circuit.append(initialize_instr, q[:])
 
         return initialize_circuit
@@ -141,7 +145,7 @@ class Initialize(Instruction):
             # qubit (we peel away one qubit at a time)
             (remaining_param,
              thetas,
-             phis) = Initialize._rotations_to_disentangle(remaining_param)
+             phis) = InitializeGate._rotations_to_disentangle(remaining_param)
 
             # perform the required rotations to decouple the LSB qubit (so that
             # it can be "factored" out, leaving a shorter amplitude vector to peel away)
@@ -188,7 +192,7 @@ class Initialize(Instruction):
             # multiplexor being in state |i>)
             (remains,
              add_theta,
-             add_phi) = Initialize._bloch_angles(local_param[2 * i: 2 * (i + 1)])
+             add_phi) = InitializeGate._bloch_angles(local_param[2 * i: 2 * (i + 1)])
 
             remaining_vector.append(remains)
 
@@ -285,6 +289,85 @@ class Initialize(Instruction):
             circuit.append(CXGate(), [msb, lsb])
 
         return circuit
+
+    def broadcast_arguments(self, qargs, cargs):
+        flat_qargs = [qarg for sublist in qargs for qarg in sublist]
+
+        if self.num_qubits != len(flat_qargs):
+            raise QiskitError("Initialize parameter vector has %d elements, therefore expects %s "
+                              "qubits. However, %s were provided." %
+                              (2**self.num_qubits, self.num_qubits, len(flat_qargs)))
+        yield flat_qargs, []
+
+    def validate_parameter(self, parameter):
+        """Initialize instruction parameter can be str, int, float, and complex."""
+
+        # Initialize instruction parameter can be str
+        if self._fromlabel:
+            if parameter in ['0', '1', '+', '-', 'l', 'r']:
+                return parameter
+            raise CircuitError("invalid param label {0} for instruction {1}. Label should be "
+                               "0, 1, +, -, l, or r ".format(type(parameter), self.name))
+
+        # Initialize instruction parameter can be int, float, and complex.
+        if isinstance(parameter, (int, float, complex)):
+            return complex(parameter)
+        elif isinstance(parameter, np.number):
+            return complex(parameter.item())
+        else:
+            raise CircuitError("invalid param type {0} for instruction  "
+                               "{1}".format(type(parameter), self.name))
+
+
+class Initialize(Instruction):
+    """Apply reset then the complex amplitude initialization.
+    """
+
+    def __init__(self, params):
+        """Create new initialize composite.
+
+        params (list): vector of complex amplitudes to initialize to
+        """
+        if isinstance(params, str):
+            self._fromlabel = True
+            num_qubits = len(params)
+        else:
+            self._fromlabel = False
+            try:
+                num_qubits = math.log2(len(params))
+            except (ValueError, TypeError):
+                raise QiskitError("Given params are not a statevector")
+
+            # Check if param is a power of 2
+            if num_qubits == 0 or not num_qubits.is_integer():
+                raise QiskitError("Desired statevector length not a positive power of 2.")
+
+            # Check if probabilities (amplitudes squared) sum to 1
+            if not math.isclose(sum(np.absolute(params) ** 2), 1.0,
+                                abs_tol=_EPS):
+                raise QiskitError("Sum of amplitudes-squared does not equal one.")
+
+            num_qubits = int(num_qubits)
+
+        super().__init__("initialize", num_qubits, 0, params)
+
+    def _define(self):
+        """Calculate a subcircuit that implements this initialization
+
+        Implements a recursive initialization algorithm, including optimizations,
+        from "Synthesis of Quantum Logic Circuits" Shende, Bullock, Markov
+        https://arxiv.org/abs/quant-ph/0406176v5
+
+        Additionally implements some extra optimizations: remove zero rotations and
+        double cnots.
+        """
+        q = QuantumRegister(self.num_qubits, 'q')
+        initialize_circuit = QuantumCircuit(q, name='init_def')
+        for qubit in q:
+            initialize_circuit.append(Reset(), [qubit])
+        initialize_circuit.append(InitializeGate(self.params), [q[:]])
+
+        self.definition = initialize_circuit
 
     def broadcast_arguments(self, qargs, cargs):
         flat_qargs = [qarg for sublist in qargs for qarg in sublist]
