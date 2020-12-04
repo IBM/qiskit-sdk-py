@@ -15,7 +15,6 @@
 import numpy
 from qiskit.qasm import pi
 from qiskit.circuit.gate import Gate
-from qiskit.circuit.quantumregister import QuantumRegister
 
 
 class TGate(Gate):
@@ -57,13 +56,12 @@ class TGate(Gate):
         # pylint: disable=cyclic-import
         from qiskit.circuit.quantumcircuit import QuantumCircuit
         from .u1 import U1Gate
-        q = QuantumRegister(1, 'q')
-        qc = QuantumCircuit(q, name=self.name)
+        qc = QuantumCircuit(1, name=self.name)
         rules = [
-            (U1Gate(pi / 4), [q[0]], [])
+            (U1Gate(pi / 4), [0], [])
         ]
         for instr, qargs, cargs in rules:
-            qc._append(instr, qargs, cargs)
+            qc.append(instr, qargs, cargs)
 
         self.definition = qc
 
@@ -115,13 +113,12 @@ class TdgGate(Gate):
         # pylint: disable=cyclic-import
         from qiskit.circuit.quantumcircuit import QuantumCircuit
         from .u1 import U1Gate
-        q = QuantumRegister(1, 'q')
-        qc = QuantumCircuit(q, name=self.name)
+        qc = QuantumCircuit(1, name=self.name)
         rules = [
-            (U1Gate(-pi / 4), [q[0]], [])
+            (U1Gate(-pi / 4), [0], [])
         ]
         for instr, qargs, cargs in rules:
-            qc._append(instr, qargs, cargs)
+            qc.append(instr, qargs, cargs)
 
         self.definition = qc
 

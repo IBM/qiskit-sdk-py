@@ -13,7 +13,6 @@
 """Two-qubit ZZ-rotation gate."""
 
 from qiskit.circuit.gate import Gate
-from qiskit.circuit.quantumregister import QuantumRegister
 
 
 class RZZGate(Gate):
@@ -91,16 +90,15 @@ class RZZGate(Gate):
         from qiskit.circuit.quantumcircuit import QuantumCircuit
         from .x import CXGate
         from .rz import RZGate
-        q = QuantumRegister(2, 'q')
         theta = self.params[0]
-        qc = QuantumCircuit(q, name=self.name)
+        qc = QuantumCircuit(2, name=self.name)
         rules = [
-            (CXGate(), [q[0], q[1]], []),
-            (RZGate(theta), [q[1]], []),
-            (CXGate(), [q[0], q[1]], [])
+            (CXGate(), [0, 1], []),
+            (RZGate(theta), [1], []),
+            (CXGate(), [0, 1], [])
         ]
         for instr, qargs, cargs in rules:
-            qc._append(instr, qargs, cargs)
+            qc.append(instr, qargs, cargs)
 
         self.definition = qc
 

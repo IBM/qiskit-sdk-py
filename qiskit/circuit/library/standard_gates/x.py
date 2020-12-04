@@ -17,7 +17,6 @@ from math import ceil
 import numpy
 from qiskit.circuit.controlledgate import ControlledGate
 from qiskit.circuit.gate import Gate
-from qiskit.circuit.quantumregister import QuantumRegister
 from qiskit.circuit._utils import _compute_control_matrix, _ctrl_state_to_int
 from qiskit.qasm import pi
 from .h import HGate
@@ -32,7 +31,7 @@ class XGate(Gate):
 
     **Matrix Representation:**
 
-    .. math::
+    .. Math::
 
         X = \begin{pmatrix}
                 0 & 1 \\
@@ -81,13 +80,12 @@ class XGate(Gate):
         # pylint: disable=cyclic-import
         from qiskit.circuit.quantumcircuit import QuantumCircuit
         from .u3 import U3Gate
-        q = QuantumRegister(1, 'q')
-        qc = QuantumCircuit(q, name=self.name)
+        qc = QuantumCircuit(1, name=self.name)
         rules = [
-            (U3Gate(pi, 0, pi), [q[0]], [])
+            (U3Gate(pi, 0, pi), [0], [])
         ]
         for instr, qargs, cargs in rules:
-            qc._append(instr, qargs, cargs)
+            qc.append(instr, qargs, cargs)
 
         self.definition = qc
 
@@ -299,27 +297,26 @@ class CCXGate(ControlledGate):
         """
         # pylint: disable=cyclic-import
         from qiskit.circuit.quantumcircuit import QuantumCircuit
-        q = QuantumRegister(3, 'q')
-        qc = QuantumCircuit(q, name=self.name)
+        qc = QuantumCircuit(3, name=self.name)
         rules = [
-            (HGate(), [q[2]], []),
-            (CXGate(), [q[1], q[2]], []),
-            (TdgGate(), [q[2]], []),
-            (CXGate(), [q[0], q[2]], []),
-            (TGate(), [q[2]], []),
-            (CXGate(), [q[1], q[2]], []),
-            (TdgGate(), [q[2]], []),
-            (CXGate(), [q[0], q[2]], []),
-            (TGate(), [q[1]], []),
-            (TGate(), [q[2]], []),
-            (HGate(), [q[2]], []),
-            (CXGate(), [q[0], q[1]], []),
-            (TGate(), [q[0]], []),
-            (TdgGate(), [q[1]], []),
-            (CXGate(), [q[0], q[1]], [])
+            (HGate(), [2], []),
+            (CXGate(), [1, 2], []),
+            (TdgGate(), [2], []),
+            (CXGate(), [0, 2], []),
+            (TGate(), [2], []),
+            (CXGate(), [1, 2], []),
+            (TdgGate(), [2], []),
+            (CXGate(), [0, 2], []),
+            (TGate(), [1], []),
+            (TGate(), [2], []),
+            (HGate(), [2], []),
+            (CXGate(), [0, 1], []),
+            (TGate(), [0], []),
+            (TdgGate(), [1], []),
+            (CXGate(), [0, 1], [])
         ]
         for instr, qargs, cargs in rules:
-            qc._append(instr, qargs, cargs)
+            qc.append(instr, qargs, cargs)
 
         self.definition = qc
 
@@ -388,21 +385,20 @@ class RCCXGate(Gate):
         """
         # pylint: disable=cyclic-import
         from qiskit.circuit.quantumcircuit import QuantumCircuit
-        q = QuantumRegister(3, 'q')
-        qc = QuantumCircuit(q, name=self.name)
+        qc = QuantumCircuit(3, name=self.name)
         rules = [
-            (U2Gate(0, pi), [q[2]], []),  # H gate
-            (U1Gate(pi / 4), [q[2]], []),  # T gate
-            (CXGate(), [q[1], q[2]], []),
-            (U1Gate(-pi / 4), [q[2]], []),  # inverse T gate
-            (CXGate(), [q[0], q[2]], []),
-            (U1Gate(pi / 4), [q[2]], []),
-            (CXGate(), [q[1], q[2]], []),
-            (U1Gate(-pi / 4), [q[2]], []),  # inverse T gate
-            (U2Gate(0, pi), [q[2]], []),  # H gate
+            (U2Gate(0, pi), [2], []),  # H gate
+            (U1Gate(pi / 4), [2], []),  # T gate
+            (CXGate(), [1, 2], []),
+            (U1Gate(-pi / 4), [2], []),  # inverse T gate
+            (CXGate(), [0, 2], []),
+            (U1Gate(pi / 4), [2], []),
+            (CXGate(), [1, 2], []),
+            (U1Gate(-pi / 4), [2], []),  # inverse T gate
+            (U2Gate(0, pi), [2], []),  # H gate
         ]
         for instr, qargs, cargs in rules:
-            qc._append(instr, qargs, cargs)
+            qc.append(instr, qargs, cargs)
 
         self.definition = qc
 
@@ -472,40 +468,39 @@ class C3SXGate(ControlledGate):
         # pylint: disable=cyclic-import
         from qiskit.circuit.quantumcircuit import QuantumCircuit
         from .u1 import CU1Gate
-        q = QuantumRegister(4, name='q')
         # pylint: disable=invalid-unary-operand-type
         rules = [
-            (HGate(), [q[3]], []),
-            (CU1Gate(-self._angle), [q[0], q[3]], []),
-            (HGate(), [q[3]], []),
-            (CXGate(), [q[0], q[1]], []),
-            (HGate(), [q[3]], []),
-            (CU1Gate(self._angle), [q[1], q[3]], []),
-            (HGate(), [q[3]], []),
-            (CXGate(), [q[0], q[1]], []),
-            (HGate(), [q[3]], []),
-            (CU1Gate(-self._angle), [q[1], q[3]], []),
-            (HGate(), [q[3]], []),
-            (CXGate(), [q[1], q[2]], []),
-            (HGate(), [q[3]], []),
-            (CU1Gate(self._angle), [q[2], q[3]], []),
-            (HGate(), [q[3]], []),
-            (CXGate(), [q[0], q[2]], []),
-            (HGate(), [q[3]], []),
-            (CU1Gate(-self._angle), [q[2], q[3]], []),
-            (HGate(), [q[3]], []),
-            (CXGate(), [q[1], q[2]], []),
-            (HGate(), [q[3]], []),
-            (CU1Gate(self._angle), [q[2], q[3]], []),
-            (HGate(), [q[3]], []),
-            (CXGate(), [q[0], q[2]], []),
-            (HGate(), [q[3]], []),
-            (CU1Gate(-self._angle), [q[2], q[3]], []),
-            (HGate(), [q[3]], [])
+            (HGate(), [3], []),
+            (CU1Gate(-self._angle), [0, 3], []),
+            (HGate(), [3], []),
+            (CXGate(), [0, 1], []),
+            (HGate(), [3], []),
+            (CU1Gate(self._angle), [1, 3], []),
+            (HGate(), [3], []),
+            (CXGate(), [0, 1], []),
+            (HGate(), [3], []),
+            (CU1Gate(-self._angle), [1, 3], []),
+            (HGate(), [3], []),
+            (CXGate(), [1, 2], []),
+            (HGate(), [3], []),
+            (CU1Gate(self._angle), [2, 3], []),
+            (HGate(), [3], []),
+            (CXGate(), [0, 2], []),
+            (HGate(), [3], []),
+            (CU1Gate(-self._angle), [2, 3], []),
+            (HGate(), [3], []),
+            (CXGate(), [1, 2], []),
+            (HGate(), [3], []),
+            (CU1Gate(self._angle), [2, 3], []),
+            (HGate(), [3], []),
+            (CXGate(), [0, 2], []),
+            (HGate(), [3], []),
+            (CU1Gate(-self._angle), [2, 3], []),
+            (HGate(), [3], [])
         ]
-        qc = QuantumCircuit(q)
+        qc = QuantumCircuit(4)
         for instr, qargs, cargs in rules:
-            qc._append(instr, qargs, cargs)
+            qc.append(instr, qargs, cargs)
 
         self.definition = qc
 
@@ -684,30 +679,29 @@ class RC3XGate(Gate):
         """
         # pylint: disable=cyclic-import
         from qiskit.circuit.quantumcircuit import QuantumCircuit
-        q = QuantumRegister(4, 'q')
-        qc = QuantumCircuit(q, name=self.name)
+        qc = QuantumCircuit(4, name=self.name)
         rules = [
-            (U2Gate(0, pi), [q[3]], []),  # H gate
-            (U1Gate(pi / 4), [q[3]], []),  # T gate
-            (CXGate(), [q[2], q[3]], []),
-            (U1Gate(-pi / 4), [q[3]], []),  # inverse T gate
-            (U2Gate(0, pi), [q[3]], []),
-            (CXGate(), [q[0], q[3]], []),
-            (U1Gate(pi / 4), [q[3]], []),
-            (CXGate(), [q[1], q[3]], []),
-            (U1Gate(-pi / 4), [q[3]], []),
-            (CXGate(), [q[0], q[3]], []),
-            (U1Gate(pi / 4), [q[3]], []),
-            (CXGate(), [q[1], q[3]], []),
-            (U1Gate(-pi / 4), [q[3]], []),
-            (U2Gate(0, pi), [q[3]], []),
-            (U1Gate(pi / 4), [q[3]], []),
-            (CXGate(), [q[2], q[3]], []),
-            (U1Gate(-pi / 4), [q[3]], []),
-            (U2Gate(0, pi), [q[3]], []),
+            (U2Gate(0, pi), [3], []),  # H gate
+            (U1Gate(pi / 4), [3], []),  # T gate
+            (CXGate(), [2, 3], []),
+            (U1Gate(-pi / 4), [3], []),  # inverse T gate
+            (U2Gate(0, pi), [3], []),
+            (CXGate(), [0, 3], []),
+            (U1Gate(pi / 4), [3], []),
+            (CXGate(), [1, 3], []),
+            (U1Gate(-pi / 4), [3], []),
+            (CXGate(), [0, 3], []),
+            (U1Gate(pi / 4), [3], []),
+            (CXGate(), [1, 3], []),
+            (U1Gate(-pi / 4), [3], []),
+            (U2Gate(0, pi), [3], []),
+            (U1Gate(pi / 4), [3], []),
+            (CXGate(), [2, 3], []),
+            (U1Gate(-pi / 4), [3], []),
+            (U2Gate(0, pi), [3], []),
         ]
         for instr, qargs, cargs in rules:
-            qc._append(instr, qargs, cargs)
+            qc.append(instr, qargs, cargs)
 
         self.definition = qc
 
@@ -778,9 +772,9 @@ class C4XGate(ControlledGate):
         # pylint: disable=cyclic-import
         from qiskit.circuit.quantumcircuit import QuantumCircuit
         from .u1 import CU1Gate
-        q = QuantumRegister(5, name='q')
-        qc = QuantumCircuit(q, name=self.name)
+        qc = QuantumCircuit(5, name=self.name)
         rules = [
+<<<<<<< HEAD
             (HGate(), [q[4]], []),
             (CU1Gate(-numpy.pi / 2), [q[3], q[4]], []),
             (HGate(), [q[4]], []),
@@ -790,9 +784,20 @@ class C4XGate(ControlledGate):
             (HGate(), [q[4]], []),
             (RC3XGate().inverse(), [q[0], q[1], q[2], q[3]], []),
             (C3SXGate(), [q[0], q[1], q[2], q[4]], []),
+=======
+            (HGate(), [4], []),
+            (CU1Gate(-numpy.pi / 2), [3, 4], []),
+            (HGate(), [4], []),
+            (RC3XGate(), [0, 1, 2, 3], []),
+            (HGate(), [4], []),
+            (CU1Gate(numpy.pi / 2), [3, 4], []),
+            (HGate(), [4], []),
+            (RC3XGate().inverse(), [0, 1, 2, 3], []),
+            (C3XGate(numpy.pi / 8), [0, 1, 2, 4], []),
+>>>>>>> c258e921ee... Remove unnecessary Registers from circuit library standard gates.
         ]
         for instr, qargs, cargs in rules:
-            qc._append(instr, qargs, cargs)
+            qc.append(instr, qargs, cargs)
 
         self.definition = qc
 
@@ -881,9 +886,8 @@ class MCXGate(ControlledGate):
         """The standard definition used the Gray code implementation."""
         # pylint: disable=cyclic-import
         from qiskit.circuit.quantumcircuit import QuantumCircuit
-        q = QuantumRegister(self.num_qubits, name='q')
-        qc = QuantumCircuit(q)
-        qc._append(MCXGrayCode(self.num_ctrl_qubits), q[:], [])
+        qc = QuantumCircuit(self.num_qubits)
+        qc._append(MCXGrayCode(self.num_ctrl_qubits), qc.qubits[:], [])
         self.definition = qc
 
     @property
@@ -947,11 +951,10 @@ class MCXGrayCode(MCXGate):
         # pylint: disable=cyclic-import
         from qiskit.circuit.quantumcircuit import QuantumCircuit
         from .u1 import MCU1Gate
-        q = QuantumRegister(self.num_qubits, name='q')
-        qc = QuantumCircuit(q, name=self.name)
-        qc._append(HGate(), [q[-1]], [])
-        qc._append(MCU1Gate(numpy.pi, num_ctrl_qubits=self.num_ctrl_qubits), q[:], [])
-        qc._append(HGate(), [q[-1]], [])
+        qc = QuantumCircuit(self.num_qubits, name=self.name)
+        qc.append(HGate(), [-1], [])
+        qc._append(MCU1Gate(numpy.pi, num_ctrl_qubits=self.num_ctrl_qubits), qc.qubits, [])
+        qc.append(HGate(), [-1], [])
         self.definition = qc
 
 
@@ -979,16 +982,16 @@ class MCXRecursive(MCXGate):
         """Define the MCX gate using recursion."""
         # pylint: disable=cyclic-import
         from qiskit.circuit.quantumcircuit import QuantumCircuit
-        q = QuantumRegister(self.num_qubits, name='q')
-        qc = QuantumCircuit(q, name=self.name)
+        qc = QuantumCircuit(self.num_qubits, name=self.name)
         if self.num_qubits == 4:
-            qc._append(C3XGate(), q[:], [])
+            qc._append(C3XGate(), qc.qubits, [])
             self.definition = qc
         elif self.num_qubits == 5:
-            qc._append(C4XGate(), q[:], [])
+            qc._append(C4XGate(), qc.qubits, [])
             self.definition = qc
         else:
-            for instr, qargs, cargs in self._recurse(q[:-1], q_ancilla=q[-1]):
+            for instr, qargs, cargs in self._recurse(qc.qubits[:-1],
+                                                     q_ancilla=qc.qubits[-1]):
                 qc._append(instr, qargs, cargs)
             self.definition = qc
 
@@ -1046,11 +1049,10 @@ class MCXVChain(MCXGate):
         """Define the MCX gate using a V-chain of CX gates."""
         # pylint: disable=cyclic-import
         from qiskit.circuit.quantumcircuit import QuantumCircuit
-        q = QuantumRegister(self.num_qubits, name='q')
-        qc = QuantumCircuit(q, name=self.name)
-        q_controls = q[:self.num_ctrl_qubits]
-        q_target = q[self.num_ctrl_qubits]
-        q_ancillas = q[self.num_ctrl_qubits + 1:]
+        qc = QuantumCircuit(self.num_qubits, name=self.name)
+        q_controls = qc.qubits[:self.num_ctrl_qubits]
+        q_target = qc.qubits[self.num_ctrl_qubits]
+        q_ancillas = qc.qubits[self.num_ctrl_qubits + 1:]
 
         definition = []
 
