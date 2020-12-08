@@ -190,6 +190,7 @@ Gates and Instructions
    Measure
    Reset
    Instruction
+   OpaqueInstruction
    InstructionSet
    EquivalenceLibrary
 
@@ -218,6 +219,7 @@ from .gate import Gate
 # pylint: disable=cyclic-import
 from .controlledgate import ControlledGate
 from .instruction import Instruction
+from .opaque_instruction import OpaqueInstruction
 from .instructionset import InstructionSet
 from .barrier import Barrier
 from .delay import Delay

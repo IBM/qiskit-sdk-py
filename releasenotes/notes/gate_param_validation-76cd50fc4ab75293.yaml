@@ -1,0 +1,7 @@
+---
+deprecations:
+  - |
+    The class :class:`~qiskit.circuit.instruction.Instruction` should be consider
+    abstract and it should not be instantiated directly. If you want to create a
+    custom Instruction you can subclass :class:`~qiskit.circuit.instruction.Instruction`
+    or instantiate :class:`~qiskit.circuit.opaque_instruction. OpaqueInstruction`.

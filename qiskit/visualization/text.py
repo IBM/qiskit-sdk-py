@@ -19,7 +19,7 @@ from shutil import get_terminal_size
 import sys
 from numpy import ndarray
 
-from qiskit.circuit import ControlledGate, Gate, Instruction
+from qiskit.circuit import ControlledGate, Gate, OpaqueInstruction
 from qiskit.circuit import Reset as ResetInstruction
 from qiskit.circuit import Measure as MeasureInstruction
 from qiskit.circuit import Barrier as BarrierInstruction
@@ -796,7 +796,7 @@ class TextDrawing():
                   SXGate: '√X',
                   SXdgGate: '√XDG'}
         instruction_type = type(instruction)
-        if instruction_type in {Gate, Instruction}:
+        if instruction_type is Gate or isinstance(instruction, OpaqueInstruction):
             return instruction.name
         return labels.get(instruction_type, None)
 

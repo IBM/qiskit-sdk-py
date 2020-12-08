@@ -29,6 +29,7 @@ from qiskit.quantum_info.operators.channel.transformations import _to_choi
 from qiskit.quantum_info.operators.channel.transformations import _to_kraus
 from qiskit.quantum_info.operators.channel.transformations import _to_operator
 from qiskit.quantum_info.operators.scalar_op import ScalarOp
+from qiskit.circuit import OpaqueInstruction
 
 
 class QuantumChannel(BaseOperator, TolerancesMixin):
@@ -215,7 +216,6 @@ class QuantumChannel(BaseOperator, TolerancesMixin):
         Raises:
             QiskitError: if input data is not an N-qubit CPTP quantum channel.
         """
-        from qiskit.circuit.instruction import Instruction
         # Check if input is an N-qubit CPTP channel.
         num_qubits = int(np.log2(self._input_dim))
         if self._input_dim != self._output_dim or 2**num_qubits != self._input_dim:
@@ -234,7 +234,7 @@ class QuantumChannel(BaseOperator, TolerancesMixin):
         # converting to an Operator and using its to_instruction method
         if len(kraus) == 1:
             return Operator(kraus[0]).to_instruction()
-        return Instruction('kraus', num_qubits, 0, kraus)
+        return OpaqueInstruction('kraus', num_qubits, 0, kraus)
 
     def _is_cp_helper(self, choi, atol, rtol):
         """Test if a channel is completely-positive (CP)"""
