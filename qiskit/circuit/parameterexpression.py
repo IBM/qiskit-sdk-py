@@ -132,7 +132,6 @@ class ParameterExpression:
         Returns:
             A new expression with the specified parameters replaced.
         """
-
         inbound_parameters = {p
                               for replacement_expr in parameter_map.values()
                               for p in replacement_expr.parameters}
@@ -233,6 +232,22 @@ class ParameterExpression:
 
         return ParameterExpression(parameter_symbols, expr)
 
+    def __lt__(self, other):
+        from sympy import Lt
+        return self._apply_operation(Lt, other)
+
+    def __le__(self, other):
+        from sympy import Le
+        return self._apply_operation(Le, other)
+
+    def __ge__(self, other):
+        from sympy import Ge
+        return self._apply_operation(Ge, other)
+
+    def __gt__(self, other):
+        from sympy import Gt
+        return self._apply_operation(Gt, other)
+
     def gradient(self, param) -> Union['ParameterExpression', float]:
         """Get the derivative of a parameter expression w.r.t. a specified parameter expression.
 
@@ -295,6 +310,14 @@ class ParameterExpression:
     def __rtruediv__(self, other):
         return self._apply_operation(operator.truediv, other, reflected=True)
 
+    def __and__(self, other):
+        from sympy.logic.boolalg import And
+        return self._apply_operation(And, other)
+
+    def __or__(self, other):
+        from sympy.logic.boolalg import Or
+        return self._apply_operation(Or, other)
+
     def _call(self, ufunc):
         return ParameterExpression(
             self._parameter_symbols,
@@ -331,6 +354,11 @@ class ParameterExpression:
         from sympy import atan as _atan
         return self._call(_atan)
 
+    def arctan2(self, denom):
+        """Arctan2 of a ParameterExpression."""
+        from sympy import atan2 as _atan2
+        return self._apply_operation(_atan2, denom)
+
     def exp(self):
         """Exponential of a ParameterExpression"""
         from sympy import exp as _exp
@@ -341,11 +369,46 @@ class ParameterExpression:
         from sympy import log as _log
         return self._call(_log)
 
+    def sqrt(self):
+        """Return square root of ParameterExpression"""
+        from sympy import sqrt as _sqrt
+        return self._call(_sqrt)
+
+    def __floor__(self):
+        """Return floor of ParameterExpression. Complex expressions are treated
+        by evaluating the real and imaginary parts separately."""
+        from sympy import floor as _floor
+        return self._call(_floor)
+
+    def __ceil__(self):
+        """Return ceil of ParameterExpression. Complex expressions are treated
+        by evaluating the real and imaginary parts separately."""
+        from sympy import ceiling as _ceil
+        return self._call(_ceil)
+
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, str(self))
 
     def __str__(self):
         return str(self._symbol_expr)
+
+    def _sympy_(self):
+        return self._symbol_expr
+
+    def __bool__(self):
+        from sympy.core.relational import Relational
+        expr = self._symbol_expr
+        if isinstance(expr, Relational):
+            from sympy import simplify
+            sexpr = simplify(expr)
+            try:
+                return bool(sexpr)
+            except TypeError:
+                # This may be a gotcha; will return false if expression not
+                # strict. Comes up when using PrettyPrinter on ParameterVector
+                return False
+        else:
+            return bool(expr)
 
     def __float__(self):
         if self.parameters:
@@ -379,15 +442,174 @@ class ParameterExpression:
            or a fixed value (only if this is a bound expression).
         Args:
             other (ParameterExpression or a number):
-                Parameter expression or numeric constant used for comparison
+                Parameter expression or numeric constant used for comparison.
         Returns:
             bool: result of the comparison
         """
-        from sympy import srepr
-        if isinstance(other, ParameterExpression):
-            return (self.parameters == other.parameters
-                    and srepr(self._symbol_expr) == srepr(other._symbol_expr))
-        elif isinstance(other, numbers.Number):
-            return (len(self.parameters) == 0
-                    and complex(self._symbol_expr) == other)
-        return False
+        from sympy import srepr, sympify
+        if not isinstance(other, ParameterExpression):
+            other = ParameterExpression(dict(), sympify(other))
+        return (isinstance(other, ParameterExpression)
+                and self.parameters == other.parameters
+                and srepr(self._symbol_expr) == srepr(other._symbol_expr))
+
+
+# pylint: disable=invalid-name
+def Max(arg1, arg2):
+    """
+    Return maximum of ParameterExpression.
+
+    Args:
+        args
+
+    Returns:
+        ParameterExpression: max expression
+    """
+    import sympy
+    args = [arg1, arg2]
+    args2 = [arg if isinstance(arg, ParameterExpression)
+             else ParameterExpression(dict(), sympy.sympify(arg))
+             for arg in args]
+    return args2[0]._apply_operation(sympy.Max, args2[1])
+
+
+# pylint: disable=invalid-name
+def Min(arg1, arg2):
+    """
+    Return minimum of ParameterExpression.
+
+    Args:
+        a (ParameterExpression, Number): first expression
+        b (ParameterExpression, Number): second expression
+
+    Returns:
+        ParameterExpression: minimum expression
+    """
+    import sympy
+    args = [arg1, arg2]
+    args2 = [arg if isinstance(arg, ParameterExpression)
+             else ParameterExpression(dict(), sympy.sympify(arg))
+             for arg in args]
+    return args2[0]._apply_operation(sympy.Min, args2[1])
+
+
+# pylint: disable=invalid-name
+def Eq(expr1, expr2):
+    """
+    Return equality expression between two expressions. At least one
+    of the arguments should be a ParameterExpression. If not, the
+    function will default to python's normal equality.
+
+    Args:
+        expr1 (ParameterExpression): first expression
+        expr2 (ParameterExpression): second expression
+
+    Returns:
+        ParameterExpression: equality expression
+    """
+    import sympy
+    ispe1 = isinstance(expr1, ParameterExpression)
+    ispe2 = isinstance(expr2, ParameterExpression)
+    if not (ispe1 or ispe2):
+        return expr1 == expr2
+    pexpr1 = expr1 if ispe1 else ParameterExpression(dict(), expr1)
+    pexpr2 = expr2 if ispe2 else ParameterExpression(dict(), expr2)
+    return pexpr1._apply_operation(sympy.Eq, pexpr2)
+
+
+# pylint: disable=invalid-name
+def Ne(expr1, expr2):
+    """
+    Return non-equality between two expressions. At least one
+    of the arguments should be a ParameterExpression. If not, the
+    function will default to python's normal equality.
+
+    Args:
+        expr1 (ParameterExpression): first expression
+        expr2 (ParameterExpression): second expression
+
+    Returns:
+        ParameterExpression: equality expression
+    """
+    import sympy
+    ispe1 = isinstance(expr1, ParameterExpression)
+    ispe2 = isinstance(expr2, ParameterExpression)
+    if not (ispe1 or ispe2):
+        return expr1 != expr2
+    pexpr1 = expr1 if ispe1 else ParameterExpression(dict(), expr1)
+    pexpr2 = expr2 if ispe2 else ParameterExpression(dict(), expr2)
+    return pexpr1._apply_operation(sympy.Ne, pexpr2)
+
+
+# pylint: disable=invalid-name
+def Sign(expr):
+    """
+    Return of expression.
+
+    Args:
+        expr (ParameterExpression): expression
+
+    Returns:
+        ParameterExpression: sign of expression as an expression
+    """
+    import sympy
+    ispe = isinstance(expr, ParameterExpression)
+    pexpr = expr if ispe else ParameterExpression(dict(), expr)
+    return pexpr._call(sympy.functions.sign)
+
+
+# pylint: disable=invalid-name
+def Piecewise(*args):
+    """
+    This allows to define piecewise continuous functions of ParameterExpressions.
+    It wraps sympy's function of the same name.
+
+    Args:
+        args (list((expr, cond))): args is  list of ParameterExpression-ParameterExpression pairs
+            where the first is the expression and the second is a condition. The number of items
+            arguments should be >= 2.
+
+    Returns:
+        ParameterExpression: piecewise conditioned parameter expression
+    """
+    import sympy
+    expr1, cond1 = args[0]
+    expr1 = expr1 if isinstance(expr1, ParameterExpression) else ParameterExpression(dict(), expr1)
+    cond1 = cond1 if isinstance(cond1, ParameterExpression) else ParameterExpression(dict(), cond1)
+    parameter_symbols = {**expr1._parameter_symbols, **cond1._parameter_symbols}
+    # gather parameter symbols used across expressions
+    for expr2, cond2 in args[1:]:
+        if not isinstance(expr2, ParameterExpression):
+            expr2 = ParameterExpression(dict(), expr2)
+        if not isinstance(cond2, ParameterExpression):
+            cond2 = ParameterExpression(dict(), cond2)
+        expr1._raise_if_parameter_names_conflict(expr2._parameter_symbols.keys())
+        parameter_symbols = {**parameter_symbols,
+                             **expr2._parameter_symbols,
+                             **cond2._parameter_symbols}
+    sympy_args = ((sympy.sympify(expr), sympy.sympify(cond))
+                  for expr, cond in args)
+    expr = sympy.Piecewise(*sympy_args)
+    return ParameterExpression(parameter_symbols, expr)
+
+
+# def _sympy2qiskit(expr):
+#     """
+#     Convert simple sympy expressions to qiskit.
+
+#     Args:
+#         expr (sympy.Expr): sympy expression.
+
+#     Returns:
+#         ParameterExpression: converted expression
+
+#     Raises:
+#         TypeError: if expr is not a sympy expression
+#     """
+#     from sympy import Expr
+#     from qiskit.circuit import Parameter
+#     if not isinstance(expr, Expr):
+#         raise TypeError('expression of type "{0}" '
+#                         'is not a sympy expression'.format(expr))
+#     symbol_map = {Parameter(param.name): param for param in expr.free_symbols}
+#     return ParameterExpression(symbol_map, expr)
