@@ -99,7 +99,7 @@ class Layout():
             return self._p2v[item]
         if item in self._v2p:
             return self._v2p[item]
-        raise KeyError('The item %s does not exist in the Layout' % (item,))
+        raise KeyError(f'The item {item} does not exist in the Layout')
 
     def __setitem__(self, key, value):
         virtual, physical = Layout.order_based_on_type(key, value)

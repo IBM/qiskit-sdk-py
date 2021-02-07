@@ -511,11 +511,11 @@ class QCircuitImage:
                                     self.parse_params(op.op.params[0]))
                             elif nm == "u2":
                                 self._latex[pos_1][column] = \
-                                    "\\gate{U_2\\left(%s,%s\\right)}" % (
+                                    "\\gate{{U_2\\left({},{}\\right)}}".format(
                                         self.parse_params(op.op.params[0]),
                                         self.parse_params(op.op.params[1]))
                             elif nm == "u3":
-                                self._latex[pos_1][column] = ("\\gate{U_3(%s,%s,%s)}" % (
+                                self._latex[pos_1][column] = ("\\gate{{U_3({},{},{})}}".format(
                                     self.parse_params(op.op.params[0]),
                                     self.parse_params(op.op.params[1]),
                                     self.parse_params(op.op.params[2])))
@@ -568,11 +568,11 @@ class QCircuitImage:
                                     self.parse_params(op.op.params[0]))
                             elif nm == "u2":
                                 self._latex[pos_1][column] = \
-                                    "\\gate{U_2\\left(%s,%s\\right)}" % (
+                                    "\\gate{{U_2\\left({},{}\\right)}}".format(
                                         self.parse_params(op.op.params[0]),
                                         self.parse_params(op.op.params[1]))
                             elif nm == "u3":
-                                self._latex[pos_1][column] = ("\\gate{U_3(%s,%s,%s)}" % (
+                                self._latex[pos_1][column] = ("\\gate{{U_3({},{},{})}}".format(
                                     self.parse_params(op.op.params[0]),
                                     self.parse_params(op.op.params[1]),
                                     self.parse_params(op.op.params[2])))

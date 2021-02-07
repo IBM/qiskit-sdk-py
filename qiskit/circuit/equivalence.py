@@ -224,7 +224,7 @@ class EquivalenceLibrary():
                                                         'label': str(set(decomp_basis))})
                     node_map[decomp_basis] = decomp_basis_node
 
-                label = "%s\n%s" % (
+                label = "{}\n{}".format(
                     str(params), str(decomp) if num_qubits <= 5 else '...')
                 graph.add_edge(node_map[basis],
                                node_map[decomp_basis],

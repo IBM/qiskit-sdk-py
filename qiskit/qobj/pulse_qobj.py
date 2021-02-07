@@ -178,14 +178,14 @@ class PulseQobjInstruction:
         return out_dict
 
     def __repr__(self):
-        out = 'PulseQobjInstruction(name="%s", t0=%s' % (self.name, self.t0)
+        out = f'PulseQobjInstruction(name="{self.name}", t0={self.t0}'
         for attr in self._COMMON_ATTRS:
             attr_val = getattr(self, attr, None)
             if attr_val is not None:
                 if isinstance(attr_val, str):
-                    out += ', %s="%s"' % (attr, attr_val)
+                    out += f', {attr}="{attr_val}"'
                 else:
-                    out += ", %s=%s" % (attr, attr_val)
+                    out += f", {attr}={attr_val}"
         out += ')'
         return out
 
@@ -194,7 +194,7 @@ class PulseQobjInstruction:
         out += "\t\tt0: %s\n" % self.t0
         for attr in self._COMMON_ATTRS:
             if hasattr(self, attr):
-                out += '\t\t%s: %s\n' % (attr, getattr(self, attr))
+                out += '\t\t{}: {}\n'.format(attr, getattr(self, attr))
         return out
 
     @classmethod
@@ -495,10 +495,10 @@ class PulseLibraryItem:
         return cls(**data)
 
     def __repr__(self):
-        return "PulseLibraryItem(%s, %s)" % (self.name, repr(self.samples))
+        return "PulseLibraryItem({}, {})".format(self.name, repr(self.samples))
 
     def __str__(self):
-        return "Pulse Library Item:\n\tname: %s\n\tsamples: %s" % (
+        return "Pulse Library Item:\n\tname: {}\n\tsamples: {}".format(
             self.name, self.samples)
 
     def __eq__(self, other):
@@ -550,7 +550,7 @@ class PulseQobj:
     def __repr__(self):
         experiments_str = [repr(x) for x in self.experiments]
         experiments_repr = '[' + ', '.join(experiments_str) + ']'
-        out = "PulseQobj(qobj_id='%s', config=%s, experiments=%s, header=%s)" % (
+        out = "PulseQobj(qobj_id='{}', config={}, experiments={}, header={})".format(
             self.qobj_id, repr(self.config), experiments_repr,
             repr(self.header))
         return out

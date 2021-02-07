@@ -857,13 +857,13 @@ class QuantumCircuit:
                 ret = [index if isinstance(index, Bit) else in_array[
                     index] for index in bit_representation]
             else:
-                raise CircuitError('Not able to expand a %s (%s)' % (bit_representation,
-                                                                     type(bit_representation)))
+                raise CircuitError('Not able to expand a {} ({})'.format(bit_representation,
+                                                                         type(bit_representation)))
         except IndexError:
             raise CircuitError('Index out of range.')
         except TypeError:
-            raise CircuitError('Type error handling %s (%s)' % (bit_representation,
-                                                                type(bit_representation)))
+            raise CircuitError('Type error handling {} ({})'.format(bit_representation,
+                                                                    type(bit_representation)))
         return ret
 
     def qbit_argument_conversion(self, qubit_representation):
@@ -1117,17 +1117,18 @@ class QuantumCircuit:
 
         for data, qargs, _ in instruction.definition:
             gate_qargs = ",".join(["q%i" % index for index in [qubit.index for qubit in qargs]])
-            composite_circuit_gates += "%s %s; " % (data.qasm(), gate_qargs)
+            composite_circuit_gates += f"{data.qasm()} {gate_qargs}; "
 
         if composite_circuit_gates:
             composite_circuit_gates = composite_circuit_gates.rstrip(' ')
 
         if gate_parameters:
-            qasm_string = "gate %s(%s) %s { %s }" % (instruction.name, gate_parameters,
-                                                     qubit_parameters, composite_circuit_gates)
+            qasm_string = "gate {}({}) {} {{ {} }}".format(instruction.name, gate_parameters,
+                                                           qubit_parameters,
+                                                           composite_circuit_gates)
         else:
-            qasm_string = "gate %s %s { %s }" % (instruction.name, qubit_parameters,
-                                                 composite_circuit_gates)
+            qasm_string = "gate {} {} {{ {} }}".format(instruction.name, qubit_parameters,
+                                                       composite_circuit_gates)
 
         return qasm_string
 
@@ -1186,20 +1187,20 @@ class QuantumCircuit:
 
                     # Insert composite circuit qasm definition right after header and extension lib
                     string_temp = string_temp.replace(self.extension_lib,
-                                                      "%s\n%s" % (self.extension_lib,
-                                                                  qasm_string))
+                                                      "{}\n{}".format(self.extension_lib,
+                                                                      qasm_string))
 
                     existing_composite_circuits.append(instruction)
                     existing_gate_names.append(instruction.name)
 
                 # Insert qasm representation of the original instruction
-                string_temp += "%s %s;\n" % (instruction.qasm(),
-                                             ",".join(["%s[%d]" % (j.register.name, j.index)
-                                                       for j in qargs + cargs]))
+                string_temp += "{} {};\n".format(instruction.qasm(),
+                                                 ",".join(["%s[%d]" % (j.register.name, j.index)
+                                                           for j in qargs + cargs]))
             else:
-                string_temp += "%s %s;\n" % (instruction.qasm(),
-                                             ",".join(["%s[%d]" % (j.register.name, j.index)
-                                                       for j in qargs + cargs]))
+                string_temp += "{} {};\n".format(instruction.qasm(),
+                                                 ",".join(["%s[%d]" % (j.register.name, j.index)
+                                                           for j in qargs + cargs]))
             if instruction.name == 'unitary':
                 unitary_gates.append(instruction)
 

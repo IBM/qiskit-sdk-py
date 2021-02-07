@@ -68,7 +68,7 @@ class Id(Node):
         """Return the correspond symbolic number."""
         if not nested_scope or self.name not in nested_scope[-1]:
             raise NodeException("Expected local parameter name: ",
-                                "name=%s, line=%s, file=%s" % (
+                                "name={}, line={}, file={}".format(
                                     self.name, self.line, self.file))
         return nested_scope[-1][self.name].sym(nested_scope[0:-1])
 
@@ -76,7 +76,7 @@ class Id(Node):
         """Return the correspond floating point number."""
         if not nested_scope or self.name not in nested_scope[-1]:
             raise NodeException("Expected local parameter name: ",
-                                "name=%s, line=%s, file=%s" % (
+                                "name={}, line={}, file={}".format(
                                     self.name, self.line, self.file))
 
         return nested_scope[-1][self.name].real(nested_scope[0:-1])

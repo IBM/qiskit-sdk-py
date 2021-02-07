@@ -554,7 +554,7 @@ def _parse_backend_properties(backend_properties, backend, num_circuits):
                     replacement_gate = Gate.from_dict(gate_dict)
                     gate_dict['qubits'] = [faulty_qubits_map[qubit] for qubit in gate.qubits]
                     args = '_'.join([str(qubit) for qubit in gate_dict['qubits']])
-                    gate_dict['name'] = "%s%s" % (gate_dict['gate'], args)
+                    gate_dict['name'] = "{}{}".format(gate_dict['gate'], args)
                     gates.append(replacement_gate)
 
                 backend_properties.gates = gates

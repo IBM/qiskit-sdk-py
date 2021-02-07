@@ -251,7 +251,7 @@ class DAGCircuit:
         if wire not in self._wires:
             self._wires.add(wire)
 
-            wire_name = "%s[%s]" % (wire.register.name, wire.index)
+            wire_name = f"{wire.register.name}[{wire.index}]"
 
             inp_node = DAGNode(type='in', name=wire_name, wire=wire)
             outp_node = DAGNode(type='out', name=wire_name, wire=wire)
@@ -266,7 +266,7 @@ class DAGCircuit:
                                        {'name': wire_name,
                                         'wire': wire})
         else:
-            raise DAGCircuitError("duplicate wire %s" % (wire,))
+            raise DAGCircuitError(f"duplicate wire {wire}")
 
     def _check_condition(self, name, condition):
         """Verify that the condition is valid.
@@ -973,7 +973,7 @@ class DAGCircuit:
             for q in itertools.chain(*al):
                 self._multi_graph.add_edge(full_pred_map[q],
                                            node_index,
-                                           dict(name="%s[%s]" % (q.register.name, q.index),
+                                           dict(name=f"{q.register.name}[{q.index}]",
                                                 wire=q))
                 full_pred_map[q] = node_index
 
@@ -982,7 +982,7 @@ class DAGCircuit:
         for w in full_pred_map:
             self._multi_graph.add_edge(full_pred_map[w],
                                        full_succ_map[w],
-                                       dict(name="%s[%s]" % (w.register.name, w.index),
+                                       dict(name=f"{w.register.name}[{w.index}]",
                                             wire=w))
             o_pred = self._multi_graph.predecessors(self.output_map[w]._node_id)
             if len(o_pred) > 1:

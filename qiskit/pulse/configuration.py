@@ -94,7 +94,7 @@ class LoRange:
         return self._ub
 
     def __repr__(self):
-        return "%s(%f, %f)" % (self.__class__.__name__, self._lb, self._ub)
+        return f"{self.__class__.__name__}({self._lb:f}, {self._ub:f})"
 
     def __eq__(self, other):
         """Two LO ranges are the same if they are of the same type, and

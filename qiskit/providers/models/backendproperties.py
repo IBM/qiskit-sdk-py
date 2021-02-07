@@ -79,8 +79,8 @@ class Nduv:
         return False
 
     def __repr__(self):
-        return "Nduv(%s, %s, %s, %s)" % (repr(self.date), self.name, self.unit,
-                                         self.value)
+        return "Nduv({}, {}, {}, {})".format(repr(self.date), self.name, self.unit,
+                                             self.value)
 
 
 class Gate:

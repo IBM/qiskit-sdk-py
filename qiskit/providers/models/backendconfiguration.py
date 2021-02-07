@@ -114,8 +114,8 @@ class GateConfig:
         return False
 
     def __repr__(self):
-        out_str = "GateConfig(%s, %s, %s" % (self.name, self.parameters,
-                                             self.qasm_def)
+        out_str = "GateConfig({}, {}, {}".format(self.name, self.parameters,
+                                                 self.qasm_def)
         for i in ['coupling_map', 'latency_map', 'conditional', 'description']:
             if hasattr(self, i):
                 out_str += ', ' + repr(getattr(self, i))
@@ -179,7 +179,7 @@ class UchannelLO:
         return False
 
     def __repr__(self):
-        return "UchannelLO(%s, %s)" % (self.q, self.scale)
+        return f"UchannelLO({self.q}, {self.scale})"
 
 
 class QasmBackendConfiguration:

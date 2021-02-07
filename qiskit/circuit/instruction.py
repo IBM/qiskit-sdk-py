@@ -383,7 +383,7 @@ class Instruction:
         """
         name_param = self.name
         if self.params:
-            name_param = "%s(%s)" % (name_param, ",".join(
+            name_param = "{}({})".format(name_param, ",".join(
                 [pi_check(i, ndigits=8, output='qasm') for i in self.params]))
 
         return self._qasmif(name_param)
@@ -413,7 +413,7 @@ class Instruction:
         yield flat_qargs, flat_cargs
 
     def _return_repeat(self, exponent):
-        return Instruction(name="%s*%s" % (self.name, exponent), num_qubits=self.num_qubits,
+        return Instruction(name=f"{self.name}*{exponent}", num_qubits=self.num_qubits,
                            num_clbits=self.num_clbits, params=self.params)
 
     def repeat(self, n):

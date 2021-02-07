@@ -76,7 +76,7 @@ class Result:
                 value_str = "'%s'" % self._metadata[key]
             else:
                 value_str = repr(self._metadata[key])
-            out += ", %s=%s" % (key, value_str)
+            out += f", {key}={value_str}"
         out += ')'
         return out
 
