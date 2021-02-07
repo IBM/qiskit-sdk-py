@@ -300,7 +300,7 @@ class TestWaveformGenerators(QiskitTestCase):
 
         # data check, real part, positive max
         self.assertListEqual(objs[0].channels, [pulse.DriveChannel(0)])
-        self.assertEqual(objs[0].text, u'0.30\n\u25BE')
+        self.assertEqual(objs[0].text, '0.30\n\u25BE')
 
         # style check
         ref_style = {'zorder': self.formatter['layer.annotate'],
@@ -312,7 +312,7 @@ class TestWaveformGenerators(QiskitTestCase):
 
         # data check, imaginary part, negative max
         self.assertListEqual(objs[1].channels, [pulse.DriveChannel(0)])
-        self.assertEqual(objs[1].text, u'\u25B4\n-0.20')
+        self.assertEqual(objs[1].text, '\u25B4\n-0.20')
 
         # style check
         ref_style = {'zorder': self.formatter['layer.annotate'],
@@ -592,7 +592,7 @@ class TestFrameGenerators(QiskitTestCase):
         # data check
         self.assertListEqual(obj.channels, [pulse.DriveChannel(0)])
         self.assertEqual(obj.latex, r'\Delta f = 1.00~{\rm MHz}')
-        self.assertEqual(obj.text, u'\u0394f = 1.00 MHz')
+        self.assertEqual(obj.text, '\u0394f = 1.00 MHz')
 
         # style check
         ref_style = {'zorder': self.formatter['layer.frame_change'],

@@ -58,7 +58,7 @@ class Channel(metaclass=ABCMeta):
                 "See Channel documentation for more information."
             )
 
-        return super(Channel, cls).__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, index: int):
         """Channel class.

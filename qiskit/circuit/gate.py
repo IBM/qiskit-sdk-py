@@ -254,5 +254,5 @@ class Gate(Instruction):
                  " to allow this param type." % type(parameter), DeprecationWarning, 3)
             return parameter
         else:
-            raise CircuitError("Invalid param type {0} for gate {1}.".format(type(parameter),
-                                                                             self.name))
+            raise CircuitError("Invalid param type {} for gate {}.".format(type(parameter),
+                                                                           self.name))

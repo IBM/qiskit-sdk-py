@@ -258,7 +258,7 @@ class InstructionScheduleMap():
         if isinstance(schedule, Callable):
             func_parameters = list(inspect.signature(schedule).parameters.keys())
         else:
-            func_parameters = set(param.name for param in schedule.parameters)
+            func_parameters = {param.name for param in schedule.parameters}
 
         if arguments is None:
             # for backward compatibility

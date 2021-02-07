@@ -860,7 +860,7 @@ class TestOpConstruction(QiskitOpflowTestCase):
         op = PrimitiveOp(qc,
                          coeff=l)
 
-        params = set([phi, l, *theta.params])
+        params = {phi, l, *theta.params}
 
         self.assertEqual(params, op.parameters)
         self.assertEqual(params, StateFn(op).parameters)

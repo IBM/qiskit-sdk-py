@@ -1390,7 +1390,7 @@ class DAGCircuit:
             return node.type == "op" and node.name in namelist and node.condition is None
 
         group_list = rx.collect_runs(self._multi_graph, filter_fn)
-        return set(tuple(x) for x in group_list)
+        return {tuple(x) for x in group_list}
 
     def collect_1q_runs(self):
         """Return a set of non-conditional runs of 1q "op" nodes."""

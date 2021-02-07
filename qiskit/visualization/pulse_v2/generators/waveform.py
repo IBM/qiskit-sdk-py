@@ -278,10 +278,10 @@ def gen_waveform_max_value(data: types.PulseInstruction,
     if np.abs(ydata.real[re_maxind]) > 0.01:
         # generator shows only 2 digits after the decimal point.
         if ydata.real[re_maxind] > 0:
-            max_val = u'{val:.2f}\n\u25BE'.format(val=ydata.real[re_maxind])
+            max_val = '{val:.2f}\n\u25BE'.format(val=ydata.real[re_maxind])
             re_style = {'va': 'bottom'}
         else:
-            max_val = u'\u25B4\n{val:.2f}'.format(val=ydata.real[re_maxind])
+            max_val = '\u25B4\n{val:.2f}'.format(val=ydata.real[re_maxind])
             re_style = {'va': 'top'}
         re_style.update(style)
         re_text = drawings.TextData(data_type=types.LabelType.PULSE_INFO,
@@ -297,10 +297,10 @@ def gen_waveform_max_value(data: types.PulseInstruction,
     if np.abs(ydata.imag[im_maxind]) > 0.01:
         # generator shows only 2 digits after the decimal point.
         if ydata.imag[im_maxind] > 0:
-            max_val = u'{val:.2f}\n\u25BE'.format(val=ydata.imag[im_maxind])
+            max_val = '{val:.2f}\n\u25BE'.format(val=ydata.imag[im_maxind])
             im_style = {'va': 'bottom'}
         else:
-            max_val = u'\u25B4\n{val:.2f}'.format(val=ydata.imag[im_maxind])
+            max_val = '\u25B4\n{val:.2f}'.format(val=ydata.imag[im_maxind])
             im_style = {'va': 'top'}
         im_style.update(style)
         im_text = drawings.TextData(data_type=types.LabelType.PULSE_INFO,
