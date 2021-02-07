@@ -191,7 +191,7 @@ def gen_ibmq_latex_waveform_name(data: types.PulseInstruction,
                 angle_val = match_dict['angle']
                 frac = Fraction(int(int(angle_val)/2), 180)
                 if frac.numerator == 1:
-                    angle = r'\pi/{denom:d}'.format(denom=frac.denominator)
+                    angle = fr'\pi/{frac.denominator:d}'
                 else:
                     angle = r'{num:d}/{denom:d} \pi'.format(num=frac.numerator,
                                                             denom=frac.denominator)
@@ -204,11 +204,11 @@ def gen_ibmq_latex_waveform_name(data: types.PulseInstruction,
                 else:
                     frac = Fraction(int(angle_val), 180)
                     if frac.numerator == 1:
-                        angle = r'\pi/{denom:d}'.format(denom=frac.denominator)
+                        angle = fr'\pi/{frac.denominator:d}'
                     else:
                         angle = r'{num:d}/{denom:d} \pi'.format(num=frac.numerator,
                                                                 denom=frac.denominator)
-            latex_name = r'{}({}{})'.format(op_name, sign, angle)
+            latex_name = fr'{op_name}({sign}{angle})'
         else:
             latex_name = None
 

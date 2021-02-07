@@ -58,4 +58,4 @@ def schedule_circuit(circuit: QuantumCircuit,
     try:
         return methods[method](circuit, schedule_config)
     except KeyError:
-        raise QiskitError("Scheduling method {method} isn't recognized.".format(method=method))
+        raise QiskitError(f"Scheduling method {method} isn't recognized.")

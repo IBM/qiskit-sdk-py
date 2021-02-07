@@ -304,7 +304,7 @@ class BackendProperties:
                 raise BackendPropertyError("Provide qubits to get {n} of {g}".format(n=name,
                                                                                      g=gate))
         except KeyError:
-            raise BackendPropertyError("Could not find the desired property for {g}".format(g=gate))
+            raise BackendPropertyError(f"Could not find the desired property for {gate}")
         return result
 
     def faulty_qubits(self):
@@ -491,4 +491,4 @@ class BackendProperties:
         try:
             return apply_prefix(value, unit)
         except Exception:
-            raise BackendPropertyError("Could not understand units: {u}".format(u=unit))
+            raise BackendPropertyError(f"Could not understand units: {unit}")

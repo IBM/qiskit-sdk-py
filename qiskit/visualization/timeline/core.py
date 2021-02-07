@@ -364,7 +364,7 @@ class DrawerCanvas:
                 return self.vmax
             if val == types.AbstractCoordinate.BOTTOM:
                 return self.vmin
-            raise VisualizationError('Coordinate {name} is not supported.'.format(name=val))
+            raise VisualizationError(f'Coordinate {val} is not supported.')
 
         try:
             return np.asarray(vals, dtype=float)

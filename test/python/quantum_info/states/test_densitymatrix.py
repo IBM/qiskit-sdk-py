@@ -442,21 +442,21 @@ class TestDensityMatrix(QiskitTestCase):
         # 3-qubit qargs
         target = np.array([0.5, 0, 0, 0, 0, 0, 0, 0.5])
         for qargs in [[0, 1, 2], [2, 1, 0], [1, 2, 0], [1, 0, 2]]:
-            with self.subTest(msg='P({})'.format(qargs)):
+            with self.subTest(msg=f'P({qargs})'):
                 probs = state.probabilities(qargs)
                 self.assertTrue(np.allclose(probs, target))
 
         # 2-qubit qargs
         target = np.array([0.5, 0, 0, 0.5])
         for qargs in [[0, 1], [2, 1], [1, 2], [1, 2]]:
-            with self.subTest(msg='P({})'.format(qargs)):
+            with self.subTest(msg=f'P({qargs})'):
                 probs = state.probabilities(qargs)
                 self.assertTrue(np.allclose(probs, target))
 
         # 1-qubit qargs
         target = np.array([0.5, 0.5])
         for qargs in [[0], [1], [2]]:
-            with self.subTest(msg='P({})'.format(qargs)):
+            with self.subTest(msg=f'P({qargs})'):
                 probs = state.probabilities(qargs)
                 self.assertTrue(np.allclose(probs, target))
 
@@ -471,21 +471,21 @@ class TestDensityMatrix(QiskitTestCase):
         # 3-qubit qargs
         target = np.array([0, 1/3, 1/3, 0, 1/3, 0, 0, 0])
         for qargs in [[0, 1, 2], [2, 1, 0], [1, 2, 0], [1, 0, 2]]:
-            with self.subTest(msg='P({})'.format(qargs)):
+            with self.subTest(msg=f'P({qargs})'):
                 probs = state.probabilities(qargs)
                 self.assertTrue(np.allclose(probs, target))
 
         # 2-qubit qargs
         target = np.array([1/3, 1/3, 1/3, 0])
         for qargs in [[0, 1], [2, 1], [1, 2], [1, 2]]:
-            with self.subTest(msg='P({})'.format(qargs)):
+            with self.subTest(msg=f'P({qargs})'):
                 probs = state.probabilities(qargs)
                 self.assertTrue(np.allclose(probs, target))
 
         # 1-qubit qargs
         target = np.array([2/3, 1/3])
         for qargs in [[0], [1], [2]]:
-            with self.subTest(msg='P({})'.format(qargs)):
+            with self.subTest(msg=f'P({qargs})'):
                 probs = state.probabilities(qargs)
                 self.assertTrue(np.allclose(probs, target))
 
@@ -531,21 +531,21 @@ class TestDensityMatrix(QiskitTestCase):
         # 3-qubit qargs
         target = {'000': 0.5, '111': 0.5}
         for qargs in [[0, 1, 2], [2, 1, 0], [1, 2, 0], [1, 0, 2]]:
-            with self.subTest(msg='P({})'.format(qargs)):
+            with self.subTest(msg=f'P({qargs})'):
                 probs = state.probabilities_dict(qargs)
                 self.assertDictAlmostEqual(probs, target)
 
         # 2-qubit qargs
         target = {'00': 0.5, '11': 0.5}
         for qargs in [[0, 1], [2, 1], [1, 2], [1, 2]]:
-            with self.subTest(msg='P({})'.format(qargs)):
+            with self.subTest(msg=f'P({qargs})'):
                 probs = state.probabilities_dict(qargs)
                 self.assertDictAlmostEqual(probs, target)
 
         # 1-qubit qargs
         target = {'0': 0.5, '1': 0.5}
         for qargs in [[0], [1], [2]]:
-            with self.subTest(msg='P({})'.format(qargs)):
+            with self.subTest(msg=f'P({qargs})'):
                 probs = state.probabilities_dict(qargs)
                 self.assertDictAlmostEqual(probs, target)
 
@@ -561,21 +561,21 @@ class TestDensityMatrix(QiskitTestCase):
         target = np.array([0, 1/3, 1/3, 0, 1/3, 0, 0, 0])
         target = {'001': 1/3, '010': 1/3, '100': 1/3}
         for qargs in [[0, 1, 2], [2, 1, 0], [1, 2, 0], [1, 0, 2]]:
-            with self.subTest(msg='P({})'.format(qargs)):
+            with self.subTest(msg=f'P({qargs})'):
                 probs = state.probabilities_dict(qargs)
                 self.assertDictAlmostEqual(probs, target)
 
         # 2-qubit qargs
         target = {'00': 1/3, '01': 1/3, '10': 1/3}
         for qargs in [[0, 1], [2, 1], [1, 2], [1, 2]]:
-            with self.subTest(msg='P({})'.format(qargs)):
+            with self.subTest(msg=f'P({qargs})'):
                 probs = state.probabilities_dict(qargs)
                 self.assertDictAlmostEqual(probs, target)
 
         # 1-qubit qargs
         target = {'0': 2/3, '1': 1/3}
         for qargs in [[0], [1], [2]]:
-            with self.subTest(msg='P({})'.format(qargs)):
+            with self.subTest(msg=f'P({qargs})'):
                 probs = state.probabilities_dict(qargs)
                 self.assertDictAlmostEqual(probs, target)
 
@@ -593,7 +593,7 @@ class TestDensityMatrix(QiskitTestCase):
         target = {'000': shots / 2, '111': shots / 2}
         for qargs in [[0, 1, 2], [2, 1, 0], [1, 2, 0], [1, 0, 2]]:
 
-            with self.subTest(msg='counts (qargs={})'.format(qargs)):
+            with self.subTest(msg=f'counts (qargs={qargs})'):
                 counts = state.sample_counts(shots, qargs=qargs)
                 self.assertDictAlmostEqual(counts, target, threshold)
 
@@ -601,7 +601,7 @@ class TestDensityMatrix(QiskitTestCase):
         target = {'00': shots / 2, '11': shots / 2}
         for qargs in [[0, 1], [2, 1], [1, 2], [1, 2]]:
 
-            with self.subTest(msg='counts (qargs={})'.format(qargs)):
+            with self.subTest(msg=f'counts (qargs={qargs})'):
                 counts = state.sample_counts(shots, qargs=qargs)
                 self.assertDictAlmostEqual(counts, target, threshold)
 
@@ -609,7 +609,7 @@ class TestDensityMatrix(QiskitTestCase):
         target = {'0': shots / 2, '1': shots / 2}
         for qargs in [[0], [1], [2]]:
 
-            with self.subTest(msg='counts (qargs={})'.format(qargs)):
+            with self.subTest(msg=f'counts (qargs={qargs})'):
                 counts = state.sample_counts(shots, qargs=qargs)
                 self.assertDictAlmostEqual(counts, target, threshold)
 
@@ -626,7 +626,7 @@ class TestDensityMatrix(QiskitTestCase):
         target = {'001': shots / 3, '010': shots / 3, '100': shots / 3}
         for qargs in [[0, 1, 2], [2, 1, 0], [1, 2, 0], [1, 0, 2]]:
 
-            with self.subTest(msg='P({})'.format(qargs)):
+            with self.subTest(msg=f'P({qargs})'):
                 counts = state.sample_counts(shots, qargs=qargs)
                 self.assertDictAlmostEqual(counts, target, threshold)
 
@@ -634,7 +634,7 @@ class TestDensityMatrix(QiskitTestCase):
         target = {'00': shots / 3, '01': shots / 3, '10': shots / 3}
         for qargs in [[0, 1], [2, 1], [1, 2], [1, 2]]:
 
-            with self.subTest(msg='P({})'.format(qargs)):
+            with self.subTest(msg=f'P({qargs})'):
                 counts = state.sample_counts(shots, qargs=qargs)
                 self.assertDictAlmostEqual(counts, target, threshold)
 
@@ -642,7 +642,7 @@ class TestDensityMatrix(QiskitTestCase):
         target = {'0': 2 * shots / 3, '1': shots / 3}
         for qargs in [[0], [1], [2]]:
 
-            with self.subTest(msg='P({})'.format(qargs)):
+            with self.subTest(msg=f'P({qargs})'):
                 counts = state.sample_counts(shots, qargs=qargs)
                 self.assertDictAlmostEqual(counts, target, threshold)
 
@@ -672,7 +672,7 @@ class TestDensityMatrix(QiskitTestCase):
         target = {'000': shots / 2, '111': shots / 2}
         for qargs in [[0, 1, 2], [2, 1, 0], [1, 2, 0], [1, 0, 2]]:
 
-            with self.subTest(msg='memory (qargs={})'.format(qargs)):
+            with self.subTest(msg=f'memory (qargs={qargs})'):
                 memory = state.sample_memory(shots, qargs=qargs)
                 self.assertEqual(len(memory), shots)
                 self.assertEqual(set(memory), set(target))
@@ -681,7 +681,7 @@ class TestDensityMatrix(QiskitTestCase):
         target = {'00': shots / 2, '11': shots / 2}
         for qargs in [[0, 1], [2, 1], [1, 2], [1, 2]]:
 
-            with self.subTest(msg='memory (qargs={})'.format(qargs)):
+            with self.subTest(msg=f'memory (qargs={qargs})'):
                 memory = state.sample_memory(shots, qargs=qargs)
                 self.assertEqual(len(memory), shots)
                 self.assertEqual(set(memory), set(target))
@@ -690,7 +690,7 @@ class TestDensityMatrix(QiskitTestCase):
         target = {'0': shots / 2, '1': shots / 2}
         for qargs in [[0], [1], [2]]:
 
-            with self.subTest(msg='memory (qargs={})'.format(qargs)):
+            with self.subTest(msg=f'memory (qargs={qargs})'):
                 memory = state.sample_memory(shots, qargs=qargs)
                 self.assertEqual(len(memory), shots)
                 self.assertEqual(set(memory), set(target))
@@ -707,7 +707,7 @@ class TestDensityMatrix(QiskitTestCase):
         target = {'001': shots / 3, '010': shots / 3, '100': shots / 3}
         for qargs in [[0, 1, 2], [2, 1, 0], [1, 2, 0], [1, 0, 2]]:
 
-            with self.subTest(msg='memory (qargs={})'.format(qargs)):
+            with self.subTest(msg=f'memory (qargs={qargs})'):
                 memory = state.sample_memory(shots, qargs=qargs)
                 self.assertEqual(len(memory), shots)
                 self.assertEqual(set(memory), set(target))
@@ -716,7 +716,7 @@ class TestDensityMatrix(QiskitTestCase):
         target = {'00': shots / 3, '01': shots / 3, '10': shots / 3}
         for qargs in [[0, 1], [2, 1], [1, 2], [1, 2]]:
 
-            with self.subTest(msg='memory (qargs={})'.format(qargs)):
+            with self.subTest(msg=f'memory (qargs={qargs})'):
                 memory = state.sample_memory(shots, qargs=qargs)
                 self.assertEqual(len(memory), shots)
                 self.assertEqual(set(memory), set(target))
@@ -725,7 +725,7 @@ class TestDensityMatrix(QiskitTestCase):
         target = {'0': 2 * shots / 3, '1': shots / 3}
         for qargs in [[0], [1], [2]]:
 
-            with self.subTest(msg='memory (qargs={})'.format(qargs)):
+            with self.subTest(msg=f'memory (qargs={qargs})'):
                 memory = state.sample_memory(shots, qargs=qargs)
                 self.assertEqual(len(memory), shots)
                 self.assertEqual(set(memory), set(target))
@@ -891,7 +891,7 @@ class TestDensityMatrix(QiskitTestCase):
         for label, target in [
                 ('II', 1), ('XX', 1), ('YY', -1), ('ZZ', 1),
                 ('IX', 0), ('YZ', 0), ('ZX', 0), ('YI', 0)]:
-            with self.subTest(msg="<{}>".format(label)):
+            with self.subTest(msg=f"<{label}>"):
                 op = Operator.from_label(label)
                 expval = rho.expectation_value(op)
                 self.assertAlmostEqual(expval, target)

@@ -432,7 +432,7 @@ class QuantumState:
 
         # Make dict of tuples
         if string_labels:
-            return {'{}|{}'.format(ket, bra): val for ket, bra, val in zip(
+            return {f'{ket}|{bra}': val for ket, bra, val in zip(
                 kets, bras, vals[inds_row, inds_col])}
 
         return {(tuple(ket), tuple(bra)): val for ket, bra, val in zip(

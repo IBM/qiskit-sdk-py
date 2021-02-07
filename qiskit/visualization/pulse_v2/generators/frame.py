@@ -93,8 +93,8 @@ def gen_formatted_phase(data: types.PulseInstruction,
                              channels=data.inst[0].channel,
                              xvals=[data.t0],
                              yvals=[formatter['label_offset.frame_change']],
-                             text='VZ({phase})'.format(phase=plain_phase),
-                             latex=r'{{\rm VZ}}({phase})'.format(phase=latex_phase),
+                             text=f'VZ({plain_phase})',
+                             latex=fr'{{\rm VZ}}({latex_phase})',
                              ignore_scaling=True,
                              styles=style)
 
@@ -140,8 +140,8 @@ def gen_formatted_freq_mhz(data: types.PulseInstruction,
                              channels=data.inst[0].channel,
                              xvals=[data.t0],
                              yvals=[formatter['label_offset.frame_change']],
-                             text='\u0394f = {freq}'.format(freq=plain_freq),
-                             latex=r'\Delta f = {freq}'.format(freq=latex_freq),
+                             text=f'\u0394f = {plain_freq}',
+                             latex=fr'\Delta f = {latex_freq}',
                              ignore_scaling=True,
                              styles=style)
 
@@ -193,8 +193,8 @@ def gen_formatted_frame_values(data: types.PulseInstruction,
                                   channels=data.inst[0].channel,
                                   xvals=[data.t0],
                                   yvals=[formatter['label_offset.frame_change']],
-                                  text='VZ({phase})'.format(phase=plain_phase),
-                                  latex=r'{{\rm VZ}}({phase})'.format(phase=latex_phase),
+                                  text=f'VZ({plain_phase})',
+                                  latex=fr'{{\rm VZ}}({latex_phase})',
                                   ignore_scaling=True,
                                   styles=phase_style)
         texts.append(phase)
@@ -211,8 +211,8 @@ def gen_formatted_frame_values(data: types.PulseInstruction,
                                  channels=data.inst[0].channel,
                                  xvals=[data.t0],
                                  yvals=[2*formatter['label_offset.frame_change']],
-                                 text='\u0394f = {freq}'.format(freq=plain_freq),
-                                 latex=r'\Delta f = {freq}'.format(freq=latex_freq),
+                                 text=f'\u0394f = {plain_freq}',
+                                 latex=fr'\Delta f = {latex_freq}',
                                  ignore_scaling=True,
                                  styles=freq_style)
         texts.append(freq)
@@ -306,16 +306,16 @@ def gen_frame_symbol(data: types.PulseInstruction,
     for inst in data.inst:
         if isinstance(inst, (instructions.SetFrequency, instructions.ShiftFrequency)):
             try:
-                program.append('{}({:.2e} Hz)'.format(inst.__class__.__name__, inst.frequency))
+                program.append(f'{inst.__class__.__name__}({inst.frequency:.2e} Hz)')
             except TypeError:
                 # parameter expression
-                program.append('{}({})'.format(inst.__class__.__name__, inst.frequency.name))
+                program.append(f'{inst.__class__.__name__}({inst.frequency.name})')
         elif isinstance(inst, (instructions.SetPhase, instructions.ShiftPhase)):
             try:
-                program.append('{}({:.2f} rad.)'.format(inst.__class__.__name__, inst.phase))
+                program.append(f'{inst.__class__.__name__}({inst.phase:.2f} rad.)')
             except TypeError:
                 # parameter expression
-                program.append('{}({})'.format(inst.__class__.__name__, inst.phase.name))
+                program.append(f'{inst.__class__.__name__}({inst.phase.name})')
 
     meta = {'total phase change': data.frame.phase,
             'total frequency change': data.frame.freq,
@@ -375,11 +375,11 @@ def _phase_to_text(formatter: Dict[str, Any],
                 latex = r'\pi'
                 plain = 'pi'
             else:
-                latex = r'\pi/{denom:d}'.format(denom=denom)
-                plain = 'pi/{denom:d}'.format(denom=denom)
+                latex = fr'\pi/{denom:d}'
+                plain = f'pi/{denom:d}'
         else:
-            latex = r'{num:d}/{denom:d} \pi'.format(num=num, denom=denom)
-            plain = '{num:d}/{denom:d} pi'.format(num=num, denom=denom)
+            latex = fr'{num:d}/{denom:d} \pi'
+            plain = f'{num:d}/{denom:d} pi'
 
     if flip:
         sign = '-' if phase > 0 else ''
@@ -417,9 +417,9 @@ def _freq_to_text(formatter: Dict[str, Any],
     try:
         value = freq/unit_table[unit]
     except KeyError:
-        raise VisualizationError('Unit {unit} is not supported.'.format(unit=unit))
+        raise VisualizationError(f'Unit {unit} is not supported.')
 
-    latex = r'{val:.2f}~{{\rm {unit}}}'.format(val=value, unit=unit)
-    plain = '{val:.2f} {unit}'.format(val=value, unit=unit)
+    latex = fr'{value:.2f}~{{\rm {unit}}}'
+    plain = f'{value:.2f} {unit}'
 
     return plain, latex

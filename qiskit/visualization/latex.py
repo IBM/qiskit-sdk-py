@@ -394,7 +394,7 @@ class QCircuitImage:
                         pos_array.append(self.img_regs[qarglist[ctrl]])
                     pos_qargs = pos_array[num_ctrl_qubits:]
                     ctrl_pos = pos_array[:num_ctrl_qubits]
-                    ctrl_state = "{:b}".format(op.op.ctrl_state).rjust(num_ctrl_qubits, '0')[::-1]
+                    ctrl_state = f"{op.op.ctrl_state:b}".rjust(num_ctrl_qubits, '0')[::-1]
                     if op.condition:
                         mask = self._get_mask(op.condition[0])
                         cl_reg = self.clbit_list[self._ffs(mask)]
@@ -800,7 +800,7 @@ class QCircuitImage:
 
                     elif len(qarglist) == 3:
                         if isinstance(op.op, ControlledGate):
-                            ctrl_state = "{:b}".format(op.op.ctrl_state).rjust(2, '0')[::-1]
+                            ctrl_state = f"{op.op.ctrl_state:b}".rjust(2, '0')[::-1]
                             cond_1 = ctrl_state[0]
                             cond_2 = ctrl_state[1]
                         pos_1 = self.img_regs[qarglist[0]]
@@ -1025,5 +1025,5 @@ def _truncate_float(matchobj, ndigits=3):
        str: returns truncated float
     """
     if matchobj.group(0):
-        return '%.{}g'.format(ndigits) % float(matchobj.group(0))
+        return f'%.{ndigits}g' % float(matchobj.group(0))
     return ''

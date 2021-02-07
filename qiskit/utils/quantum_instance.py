@@ -227,11 +227,11 @@ class QuantumInstance:
         # pylint: disable=import-outside-toplevel
         from qiskit import __version__ as terra_version
 
-        info = "\nQiskit Terra version: {}\n".format(terra_version)
+        info = f"\nQiskit Terra version: {terra_version}\n"
         info += "Backend: '{} ({})', with following setting:\n{}\n{}\n{}\n{}\n{}\n{}".format(
             self.backend_name, self._backend.provider(), self._backend_config, self._compile_config,
             self._run_config, self._qjob_config, self._backend_options, self._noise_config)
-        info += "\nMeasurement mitigation: {}".format(self._meas_error_mitigation_cls)
+        info += f"\nMeasurement mitigation: {self._meas_error_mitigation_cls}"
 
         return info
 
@@ -446,7 +446,7 @@ class QuantumInstance:
                 self._noise_config[k] = v
 
             else:
-                raise ValueError("unknown setting for the key ({}).".format(k))
+                raise ValueError(f"unknown setting for the key ({k}).")
 
     @property
     def time_taken(self) -> float:
@@ -599,7 +599,7 @@ class QuantumInstance:
         """
         shots = self._meas_error_mitigation_shots or self._run_config.shots
         if qubit_index:
-            qubit_index_str = '_'.join([str(x) for x in qubit_index]) + "_{}".format(shots)
+            qubit_index_str = '_'.join([str(x) for x in qubit_index]) + f"_{shots}"
             fitter, timestamp = self._meas_error_mitigation_fitters.get(qubit_index_str, None)
             if fitter is not None:
                 return fitter.cal_matrix, timestamp

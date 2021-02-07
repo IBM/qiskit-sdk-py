@@ -245,7 +245,7 @@ class TwoLocal(NLocal):
             try:
                 layer = valid_layers[layer]
             except KeyError:
-                raise ValueError('Unknown layer name `{}`.'.format(layer))
+                raise ValueError(f'Unknown layer name `{layer}`.')
 
         # try to exchange `layer` from a type to a gate instance
         if isinstance(layer, type):
@@ -255,7 +255,7 @@ class TwoLocal(NLocal):
                 if isinstance(gate, layer):
                     instance = gate
             if instance is None:
-                raise ValueError('Unknown layer type`{}`.'.format(layer))
+                raise ValueError(f'Unknown layer type`{layer}`.')
             layer = instance
 
         if isinstance(layer, Instruction):

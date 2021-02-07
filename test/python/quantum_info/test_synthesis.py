@@ -95,7 +95,7 @@ class CheckDecompositions(QiskitTestCase):
         if not phase_equal and maxdist > 0.1:
             maxdist = np.max(np.abs(target_unitary + decomp_unitary))
         self.assertTrue(np.abs(maxdist) < tolerance,
-                        "Operator {}: Worst distance {}".format(operator, maxdist))
+                        f"Operator {operator}: Worst distance {maxdist}")
 
     # FIXME: should be possible to set this tolerance tighter after improving the function
     def check_two_qubit_weyl_decomposition(self, target_unitary, tolerance=1.e-7):
@@ -114,7 +114,7 @@ class CheckDecompositions(QiskitTestCase):
         decomp_unitary = op.data
         maxdist = np.max(np.abs(target_unitary - decomp_unitary))
         self.assertTrue(np.abs(maxdist) < tolerance,
-                        "Unitary {}: Worst distance {}".format(target_unitary, maxdist))
+                        f"Unitary {target_unitary}: Worst distance {maxdist}")
 
     def check_exact_decomposition(self, target_unitary, decomposer, tolerance=1.e-7):
         """Check exact decomposition for a particular target"""
@@ -123,7 +123,7 @@ class CheckDecompositions(QiskitTestCase):
         decomp_unitary = result.get_unitary()
         maxdist = np.max(np.abs(target_unitary - decomp_unitary))
         self.assertTrue(np.abs(maxdist) < tolerance,
-                        "Unitary {}: Worst distance {}".format(target_unitary, maxdist))
+                        f"Unitary {target_unitary}: Worst distance {maxdist}")
 
 
 @ddt
@@ -166,7 +166,7 @@ class TestOneQubitEulerDecomposer(CheckDecompositions):
             maxdist = np.max(np.abs(target_unitary - decomp_unitary))
             if not phase_equal and maxdist > 0.1:
                 maxdist = np.max(np.abs(target_unitary + decomp_unitary))
-            self.assertTrue(np.abs(maxdist) < tolerance, "Worst distance {}".format(maxdist))
+            self.assertTrue(np.abs(maxdist) < tolerance, f"Worst distance {maxdist}")
 
     @combine(basis=['U3', 'U1X', 'PSX', 'ZSX', 'ZYZ', 'ZXZ', 'XYX', 'RR'],
              name='test_one_qubit_clifford_{basis}_basis')

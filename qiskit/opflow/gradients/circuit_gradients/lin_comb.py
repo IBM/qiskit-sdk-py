@@ -376,7 +376,7 @@ class LinComb(CircuitGradient):
                 coeffs_gates.append(c_g)
             return coeffs_gates
 
-        raise TypeError('Unrecognized parametrized gate, {}'.format(gate))
+        raise TypeError(f'Unrecognized parametrized gate, {gate}')
 
     @staticmethod
     def apply_grad_gate(circuit, gate, param_index, grad_gate, grad_coeff, qr_superpos,

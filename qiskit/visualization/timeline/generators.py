@@ -219,17 +219,17 @@ def gen_full_gate_name(gate: types.ScheduledGate,
         'ha': 'center'
     }
     # find latex representation
-    default_name = r'{{\rm {name}}}'.format(name=gate.operand.name)
+    default_name = fr'{{\rm {gate.operand.name}}}'
     latex_name = formatter['latex_symbol.gates'].get(gate.operand.name, default_name)
 
-    label_plain = '{name}'.format(name=gate.operand.name)
-    label_latex = r'{name}'.format(name=latex_name)
+    label_plain = f'{gate.operand.name}'
+    label_latex = fr'{latex_name}'
 
     # bit index
     if len(gate.bits) > 1:
         bits_str = ', '.join(map(str, [bit.index for bit in gate.bits]))
-        label_plain += '[{bits}]'.format(bits=bits_str)
-        label_latex += '[{bits}]'.format(bits=bits_str)
+        label_plain += f'[{bits_str}]'
+        label_latex += f'[{bits_str}]'
 
     # parameter list
     params = []
@@ -237,17 +237,17 @@ def gen_full_gate_name(gate: types.ScheduledGate,
         try:
             params.append('{val:.2f}'.format(val=float(val)))
         except ValueError:
-            params.append('{val}'.format(val=val))
+            params.append(f'{val}')
     params_str = ', '.join(params)
 
     if params_str and gate.operand.name != 'delay':
-        label_plain += '({params})'.format(params=params_str)
-        label_latex += '({params})'.format(params=params_str)
+        label_plain += f'({params_str})'
+        label_latex += f'({params_str})'
 
     # duration
     if gate.duration > 0:
-        label_plain += '[{dur}]'.format(dur=gate.duration)
-        label_latex += '[{dur}]'.format(dur=gate.duration)
+        label_plain += f'[{gate.duration}]'
+        label_latex += f'[{gate.duration}]'
 
     # assign special name to delay for filtering
     if gate.operand.name == 'delay':
@@ -301,11 +301,11 @@ def gen_short_gate_name(gate: types.ScheduledGate,
         'ha': 'center'
     }
     # find latex representation
-    default_name = r'{{\rm {name}}}'.format(name=gate.operand.name)
+    default_name = fr'{{\rm {gate.operand.name}}}'
     latex_name = formatter['latex_symbol.gates'].get(gate.operand.name, default_name)
 
-    label_plain = '{name}'.format(name=gate.operand.name)
-    label_latex = '{name}'.format(name=latex_name)
+    label_plain = f'{gate.operand.name}'
+    label_latex = f'{latex_name}'
 
     # assign special name for delay to filtering
     if gate.operand.name == 'delay':
@@ -380,7 +380,7 @@ def gen_bit_name(bit: types.Bits,
         'ha': 'right'
     }
 
-    label_plain = '{name}'.format(name=bit.register.name)
+    label_plain = f'{bit.register.name}'
     label_latex = r'{{\rm {register}}}_{{{index}}}'.format(register=bit.register.prefix,
                                                            index=bit.index)
 

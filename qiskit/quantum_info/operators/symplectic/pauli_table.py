@@ -150,7 +150,7 @@ class PauliTable(BaseOperator):
             # Initialize an N-qubit identity
             if data.num_qubits is None:
                 raise QiskitError(
-                    '{} is not an N-qubit identity'.format(data))
+                    f'{data} is not an N-qubit identity')
             self._array = np.zeros((1, 2 * data.num_qubits), dtype=bool)
         else:
             raise QiskitError("Invalid input data for PauliTable.")
@@ -174,7 +174,7 @@ class PauliTable(BaseOperator):
 
     def __str__(self):
         """String representation."""
-        return 'PauliTable: {}'.format(self.to_labels())
+        return f'PauliTable: {self.to_labels()}'
 
     def __eq__(self, other):
         """Test if two Pauli tables are equal."""
@@ -860,7 +860,7 @@ class PauliTable(BaseOperator):
         Returns:
             list or array: The rows of the PauliTable in label form.
         """
-        ret = np.zeros(self.size, dtype='<U{}'.format(self.num_qubits))
+        ret = np.zeros(self.size, dtype=f'<U{self.num_qubits}')
         for i in range(self.size):
             ret[i] = self._to_label(self._array[i])
         if array:

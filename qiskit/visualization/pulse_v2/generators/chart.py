@@ -134,7 +134,7 @@ def gen_chart_scale(data: types.ChartAxis,
              'va': 'center',
              'ha': 'right'}
 
-    scale_val = 'x{param}'.format(param=types.DynamicString.SCALE)
+    scale_val = f'x{types.DynamicString.SCALE}'
 
     text = drawings.TextData(data_type=types.LabelType.CH_INFO,
                              channels=data.channels,

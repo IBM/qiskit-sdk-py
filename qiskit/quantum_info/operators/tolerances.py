@@ -35,10 +35,10 @@ class TolerancesMeta(type):
         """Check if value is within valid ranges"""
         if value < 0:
             raise QiskitError(
-                "Invalid {} ({}) must be non-negative.".format(value_name, value))
+                f"Invalid {value_name} ({value}) must be non-negative.")
         if value > cls._MAX_TOL:
             raise QiskitError(
-                "Invalid {} ({}) must be less than {}.".format(value_name, value, cls._MAX_TOL))
+                f"Invalid {value_name} ({value}) must be less than {cls._MAX_TOL}.")
 
     @atol.setter
     def atol(cls, value):

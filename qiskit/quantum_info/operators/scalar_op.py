@@ -45,7 +45,7 @@ class ScalarOp(BaseOperator, TolerancesMixin):
             QiskitError: If the optional coefficient is invalid.
         """
         if not isinstance(coeff, Number):
-            QiskitError("coeff {} must be a number.".format(coeff))
+            QiskitError(f"coeff {coeff} must be a number.")
         self._coeff = coeff
         super().__init__(input_dims=dims, output_dims=dims)
 
@@ -270,7 +270,7 @@ class ScalarOp(BaseOperator, TolerancesMixin):
             QiskitError: if other is not a valid complex number.
         """
         if not isinstance(other, Number):
-            raise QiskitError("other ({}) is not a number".format(other))
+            raise QiskitError(f"other ({other}) is not a number")
         ret = self.copy()
         ret._coeff = other * self.coeff
         return ret

@@ -273,9 +273,9 @@ def _check_circuits_coupling_map(circuits, transpile_args, backend):
             max_qubits = backend.configuration().n_qubits
 
         if max_qubits is not None and (num_qubits > max_qubits):
-            raise TranspilerError('Number of qubits ({}) '.format(num_qubits) +
-                                  'in {} '.format(circuit.name) +
-                                  'is greater than maximum ({}) '.format(max_qubits) +
+            raise TranspilerError(f'Number of qubits ({num_qubits}) ' +
+                                  f'in {circuit.name} ' +
+                                  f'is greater than maximum ({max_qubits}) ' +
                                   'in the coupling_map')
 
 

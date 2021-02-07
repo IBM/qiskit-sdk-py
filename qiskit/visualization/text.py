@@ -259,7 +259,7 @@ class BoxOnQuWireTop(MultiBox, BoxOnQuWire):
         self.left_fill = len(self.wire_label)
         self.top_format = "┌─" + "s".center(self.left_fill + 1, '─') + "─┐"
         self.top_format = self.top_format.replace('s', '%s')
-        self.mid_format = "┤{} %s ├".format(self.wire_label)
+        self.mid_format = f"┤{self.wire_label} %s ├"
         self.bot_format = "│{} %s │".format(self.bot_pad * self.left_fill)
         self.top_connect = top_connect if top_connect else '─'
 
@@ -284,9 +284,9 @@ class BoxOnQuWireMid(BoxOnWireMid, BoxOnQuWire):
     def __init__(self, label, input_length, order, wire_label='', control_label=None):
         super().__init__(label, input_length, order, wire_label=wire_label)
         if control_label:
-            self.mid_format = "{}{} %s ├".format(control_label, self.wire_label)
+            self.mid_format = f"{control_label}{self.wire_label} %s ├"
         else:
-            self.mid_format = "┤{} %s ├".format(self.wire_label)
+            self.mid_format = f"┤{self.wire_label} %s ├"
 
 
 class BoxOnQuWireBot(MultiBox, BoxOnQuWire):
@@ -298,7 +298,7 @@ class BoxOnQuWireBot(MultiBox, BoxOnQuWire):
         self.top_pad = " "
         self.left_fill = len(self.wire_label)
         self.top_format = "│{} %s │".format(self.top_pad * self.left_fill)
-        self.mid_format = "┤{} %s ├".format(self.wire_label)
+        self.mid_format = f"┤{self.wire_label} %s ├"
         self.bot_format = "└─" + "s".center(self.left_fill + 1, '─') + "─┘"
         self.bot_format = self.bot_format.replace('s', '%s')
         bot_connect = bot_connect if bot_connect else '─'
@@ -326,7 +326,7 @@ class BoxOnClWireMid(BoxOnWireMid, BoxOnClWire):
 
     def __init__(self, label, input_length, order, wire_label='', **_):
         super().__init__(label, input_length, order, wire_label=wire_label)
-        self.mid_format = "╡{} %s ╞".format(self.wire_label)
+        self.mid_format = f"╡{self.wire_label} %s ╞"
 
 
 class BoxOnClWireBot(MultiBox, BoxOnClWire):
@@ -339,7 +339,7 @@ class BoxOnClWireBot(MultiBox, BoxOnClWire):
         self.top_pad = ' '
         self.bot_pad = '─'
         self.top_format = "│{} %s │".format(self.top_pad * self.left_fill)
-        self.mid_format = "╡{} %s ╞".format(self.wire_label)
+        self.mid_format = f"╡{self.wire_label} %s ╞"
         self.bot_format = "└─" + "s".center(self.left_fill + 1, '─') + "─┘"
         self.bot_format = self.bot_format.replace('s', '%s')
         bot_connect = bot_connect if bot_connect else '─'
@@ -915,7 +915,7 @@ class TextDrawing():
         num_ctrl_qubits = instruction.op.num_ctrl_qubits
         ctrl_qubits = instruction.qargs[:num_ctrl_qubits]
         args_qubits = instruction.qargs[num_ctrl_qubits:]
-        ctrl_state = "{:b}".format(instruction.op.ctrl_state).rjust(num_ctrl_qubits, '0')[::-1]
+        ctrl_state = f"{instruction.op.ctrl_state:b}".rjust(num_ctrl_qubits, '0')[::-1]
 
         in_box = list()
         top_box = list()
@@ -939,7 +939,7 @@ class TextDrawing():
         gates = []
         num_ctrl_qubits = instruction.op.num_ctrl_qubits
         ctrl_qubits = instruction.qargs[:num_ctrl_qubits]
-        cstate = "{:b}".format(instruction.op.ctrl_state).rjust(num_ctrl_qubits, '0')[::-1]
+        cstate = f"{instruction.op.ctrl_state:b}".rjust(num_ctrl_qubits, '0')[::-1]
         for i in range(len(ctrl_qubits)):
             if cstate[i] == '1':
                 gates.append(Bullet(conditional=conditional, label=ctrl_label,

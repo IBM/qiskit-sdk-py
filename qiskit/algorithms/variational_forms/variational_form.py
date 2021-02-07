@@ -108,12 +108,12 @@ class VariationalForm(ABC):
     @property
     def setting(self):
         """ setting """
-        ret = "Variational Form: {}\n".format(self.__class__.__name__)
+        ret = f"Variational Form: {self.__class__.__name__}\n"
         params = ""
         for key, value in self.__dict__.items():
             if key[0] == "_":
                 params += "-- {}: {}\n".format(key[1:], value)
-        ret += "{}".format(params)
+        ret += f"{params}"
         return ret
 
     @property

@@ -373,7 +373,7 @@ class TestControlledGate(QiskitTestCase):
 
             base = PhaseGate(lam).to_matrix()
             expected = _compute_control_matrix(base, num_controls, ctrl_state=ctrl_state)
-            with self.subTest(msg='control state = {}'.format(ctrl_state)):
+            with self.subTest(msg=f'control state = {ctrl_state}'):
                 self.assertTrue(matrix_equal(simulated, expected))
 
     @data(1, 2, 3, 4)
@@ -533,7 +533,7 @@ class TestControlledGate(QiskitTestCase):
                 rot_mat = U1Gate(theta).to_matrix()
 
             expected = _compute_control_matrix(rot_mat, num_controls, ctrl_state=ctrl_state)
-            with self.subTest(msg='control state = {}'.format(ctrl_state)):
+            with self.subTest(msg=f'control state = {ctrl_state}'):
                 self.assertTrue(matrix_equal(simulated, expected))
 
     @combine(num_controls=[1, 2, 4], use_basis_gates=[True, False])
@@ -583,7 +583,7 @@ class TestControlledGate(QiskitTestCase):
 
             expected = _compute_control_matrix(rot_mat, num_controls, ctrl_state=ctrl_state)
 
-            with self.subTest(msg='control state = {}'.format(ctrl_state)):
+            with self.subTest(msg=f'control state = {ctrl_state}'):
                 self.assertTrue(matrix_equal(simulated, expected))
 
     def test_mcry_defaults_to_vchain(self):

@@ -226,7 +226,7 @@ class Shor:
         circuit = QuantumCircuit(self._up_qreg,
                                  self._down_qreg,
                                  self._aux_qreg,
-                                 name="Shor(N={}, a={})".format(N, a))
+                                 name=f"Shor(N={N}, a={a})")
 
         # Create gates to perform addition/subtraction by N in Fourier Space
         self._phi_add_N = self._phi_add_gate(self._aux_qreg.size - 1, self._get_angles(N))

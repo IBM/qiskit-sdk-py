@@ -23,7 +23,7 @@ class ParameterVector:
         self._params = []
         self._size = length
         for i in range(length):
-            self._params += [Parameter('{}[{}]'.format(self._name, i))]
+            self._params += [Parameter(f'{self._name}[{i}]')]
 
     @property
     def name(self):
@@ -45,7 +45,7 @@ class ParameterVector:
             return self.params[start:stop:step]
 
         if key > self._size:
-            raise IndexError('Index out of range: {} > {}'.format(key, self._size))
+            raise IndexError(f'Index out of range: {key} > {self._size}')
         return self.params[key]
 
     def __iter__(self):
@@ -69,5 +69,5 @@ class ParameterVector:
         """
         if length > len(self._params):
             for i in range(len(self._params), length):
-                self._params += [Parameter('{}[{}]'.format(self._name, i))]
+                self._params += [Parameter(f'{self._name}[{i}]')]
         self._size = length

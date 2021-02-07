@@ -42,7 +42,7 @@ def _to_choi(rep, data, input_dim, output_dim):
         return _superop_to_choi(data, input_dim, output_dim)
     if rep == 'Stinespring':
         return _stinespring_to_choi(data, input_dim, output_dim)
-    raise QiskitError('Invalid QuantumChannel {}'.format(rep))
+    raise QiskitError(f'Invalid QuantumChannel {rep}')
 
 
 def _to_superop(rep, data, input_dim, output_dim):
@@ -62,7 +62,7 @@ def _to_superop(rep, data, input_dim, output_dim):
         return _ptm_to_superop(data, input_dim)
     if rep == 'Stinespring':
         return _stinespring_to_superop(data, input_dim, output_dim)
-    raise QiskitError('Invalid QuantumChannel {}'.format(rep))
+    raise QiskitError(f'Invalid QuantumChannel {rep}')
 
 
 def _to_kraus(rep, data, input_dim, output_dim):
@@ -152,7 +152,7 @@ def _from_operator(rep, data, input_dim, output_dim):
         _check_nqubit_dim(input_dim, output_dim)
         data = _from_operator('SuperOp', data, input_dim, output_dim)
         return _superop_to_ptm(data, input_dim)
-    raise QiskitError('Invalid QuantumChannel {}'.format(rep))
+    raise QiskitError(f'Invalid QuantumChannel {rep}')
 
 
 def _kraus_to_operator(data):
@@ -440,7 +440,7 @@ def _check_nqubit_dim(input_dim, output_dim):
     if input_dim != output_dim:
         raise QiskitError(
             'Not an n-qubit channel: input_dim' +
-            ' ({}) != output_dim ({})'.format(input_dim, output_dim))
+            f' ({input_dim}) != output_dim ({output_dim})')
     num_qubits = int(np.log2(input_dim))
     if 2**num_qubits != input_dim:
         raise QiskitError('Not an n-qubit channel: input_dim != 2 ** n')

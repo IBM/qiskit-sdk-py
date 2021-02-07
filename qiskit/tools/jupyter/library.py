@@ -71,11 +71,11 @@ td {
 
 tr:nth-child(even) {background-color: #f6f6f6;}
 </style>"""
-    html += "<tr><th>{}</th><th></tr>".format(circuit.name)
-    html += "<tr><td>Width</td><td>{}</td></tr>".format(circuit.width())
-    html += "<tr><td>Depth</td><td>{}</td></tr>".format(circuit.depth())
+    html += f"<tr><th>{circuit.name}</th><th></tr>"
+    html += f"<tr><td>Width</td><td>{circuit.width()}</td></tr>"
+    html += f"<tr><td>Depth</td><td>{circuit.depth()}</td></tr>"
     html += "<tr><td>Total Gates</td><td>{}</td></tr>".format(sum(ops.values()))
-    html += "<tr><td>Non-local Gates</td><td>{}</td></tr>".format(num_nl)
+    html += f"<tr><td>Non-local Gates</td><td>{num_nl}</td></tr>"
     html += "</table>"
 
     out_wid = wid.HTML(html)
@@ -85,7 +85,7 @@ tr:nth-child(even) {background-color: #f6f6f6;}
 head_style = 'font-family: IBM Plex Sans, Arial, Helvetica, sans-serif;' \
              ' font-size: 20px; font-weight: medium;'
 
-property_label = wid.HTML("<p style='{}'>Circuit Properties</p>".format(head_style),
+property_label = wid.HTML(f"<p style='{head_style}'>Circuit Properties</p>",
                           layout=wid.Layout(margin='0px 0px 10px 0px'))
 
 
@@ -144,7 +144,7 @@ def qasm_widget(circuit: QuantumCircuit) -> wid.VBox:
                                      height='auto',
                                      overflow='scroll scroll'))
 
-    out_label = wid.HTML("<p style='{}'>OpenQASM</p>".format(head_style),
+    out_label = wid.HTML(f"<p style='{head_style}'>OpenQASM</p>",
                          layout=wid.Layout(margin='0px 0px 10px 0px'))
 
     qasm = wid.VBox(children=[out_label, out],

@@ -75,7 +75,7 @@ class Schedule(abc.ABC):
         if name is None:
             name = self.prefix + str(next(self.instances_counter))
             if sys.platform != "win32" and not is_main_process():
-                name += '-{}'.format(mp.current_process().pid)
+                name += f'-{mp.current_process().pid}'
 
         self._name = name
         self._duration = 0
@@ -388,7 +388,7 @@ class Schedule(abc.ABC):
                                                  time_ranges=time_ranges,
                                                  intervals=intervals)
         return self._apply_filter(composed_filter,
-                                  new_sched_name="{name}".format(name=self.name))
+                                  new_sched_name=f"{self.name}")
 
     def exclude(self, *filter_funcs: List[Callable],
                 channels: Optional[Iterable[Channel]] = None,
@@ -415,7 +415,7 @@ class Schedule(abc.ABC):
                                                  time_ranges=time_ranges,
                                                  intervals=intervals)
         return self._apply_filter(lambda x: not composed_filter(x),
-                                  new_sched_name="{name}".format(name=self.name))
+                                  new_sched_name=f"{self.name}")
 
     def _apply_filter(self, filter_func: Callable, new_sched_name: str) -> 'Schedule':
         """Return a Schedule containing only the instructions from this Schedule for which
@@ -579,7 +579,7 @@ class Schedule(abc.ABC):
 
             if channel not in self._timeslots:
                 raise PulseError(
-                    'The channel {} is not present in the schedule'.format(channel))
+                    f'The channel {channel} is not present in the schedule')
 
             channel_timeslots = self._timeslots[channel]
             other_timeslots = _get_timeslots(schedule)
@@ -974,7 +974,7 @@ class Schedule(abc.ABC):
         instructions = ", ".join([repr(instr) for instr in self.instructions[:50]])
         if len(self.instructions) > 25:
             instructions += ", ..."
-        return 'Schedule({}, name="{}")'.format(instructions, name)
+        return f'Schedule({instructions}, name="{name}")'
 
 
 class ParameterizedSchedule:

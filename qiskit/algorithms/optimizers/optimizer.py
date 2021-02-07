@@ -135,12 +135,12 @@ class Optimizer(ABC):
     @property
     def setting(self):
         """ Return setting """
-        ret = "Optimizer: {}\n".format(self.__class__.__name__)
+        ret = f"Optimizer: {self.__class__.__name__}\n"
         params = ""
         for key, value in self.__dict__.items():
             if key[0] == "_":
                 params += "-- {}: {}\n".format(key[1:], value)
-        ret += "{}".format(params)
+        ret += f"{params}"
         return ret
 
     @abstractmethod

@@ -244,7 +244,7 @@ def _to_complex(value: Union[List[float], complex]) -> complex:
     elif isinstance(value, complex):
         return value
 
-    raise TypeError("{} is not in a valid complex number format.".format(value))
+    raise TypeError(f"{value} is not in a valid complex number format.")
 
 
 class PulseQobjConfig(QobjDictField):

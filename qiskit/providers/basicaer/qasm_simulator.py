@@ -271,7 +271,7 @@ class QasmSimulatorPy(BaseBackend):
         required_dim = 2 ** self._number_of_qubits
         if length != required_dim:
             raise BasicAerError('initial statevector is incorrect length: ' +
-                                '{} != {}'.format(length, required_dim))
+                                f'{length} != {required_dim}')
 
     def _set_options(self, qobj_config=None, backend_options=None):
         """Set the backend options for all experiments in a qobj"""
@@ -294,7 +294,7 @@ class QasmSimulatorPy(BaseBackend):
             norm = np.linalg.norm(self._initial_statevector)
             if round(norm, 12) != 1:
                 raise BasicAerError('initial statevector is not normalized: ' +
-                                    'norm {} != 1'.format(norm))
+                                    f'norm {norm} != 1')
         # Check for custom chop threshold
         # Replace with custom options
         if 'chop_threshold' in backend_options:
@@ -621,9 +621,9 @@ class QasmSimulatorPy(BaseBackend):
         n_qubits = qobj.config.n_qubits
         max_qubits = self.configuration().n_qubits
         if n_qubits > max_qubits:
-            raise BasicAerError('Number of qubits {} '.format(n_qubits) +
-                                'is greater than maximum ({}) '.format(max_qubits) +
-                                'for "{}".'.format(self.name()))
+            raise BasicAerError(f'Number of qubits {n_qubits} ' +
+                                f'is greater than maximum ({max_qubits}) ' +
+                                f'for "{self.name()}".')
         for experiment in qobj.experiments:
             name = experiment.header.name
             if experiment.config.memory_slots == 0:

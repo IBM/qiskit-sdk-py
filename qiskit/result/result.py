@@ -226,7 +226,7 @@ class Result:
             elif meas_level == MeasLevel.RAW:
                 return postprocess.format_level_0_memory(memory)
             else:
-                raise QiskitError('Measurement level {} is not supported'.format(meas_level))
+                raise QiskitError(f'Measurement level {meas_level} is not supported')
 
         except KeyError:
             raise QiskitError(

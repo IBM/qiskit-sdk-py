@@ -117,7 +117,7 @@ class TestBernoulli(QiskitAlgorithmsTestCase):
         self._statevector.reset_execution_results()
         for key, value in expect.items():
             self.assertAlmostEqual(value, getattr(result, key), places=3,
-                                   msg="estimate `{}` failed".format(key))
+                                   msg=f"estimate `{key}` failed")
 
     @idata([
         [0.2, 100, AmplitudeEstimation(4), {'estimation': 0.14644, 'mle': 0.193888}],
@@ -136,7 +136,7 @@ class TestBernoulli(QiskitAlgorithmsTestCase):
         result = qae.estimate(problem)
         for key, value in expect.items():
             self.assertAlmostEqual(value, getattr(result, key), places=3,
-                                   msg="estimate `{}` failed".format(key))
+                                   msg=f"estimate `{key}` failed")
 
     @ data(True, False)
     def test_qae_circuit(self, efficient_circuit):
@@ -315,7 +315,7 @@ class TestSineIntegral(QiskitAlgorithmsTestCase):
         self._statevector.reset_execution_results()
         for key, value in expect.items():
             self.assertAlmostEqual(value, getattr(result, key), places=3,
-                                   msg="estimate `{}` failed".format(key))
+                                   msg=f"estimate `{key}` failed")
 
     @ idata([
         [4, 10, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.333333}],
@@ -333,7 +333,7 @@ class TestSineIntegral(QiskitAlgorithmsTestCase):
         result = qae.estimate(estimation_problem)
         for key, value in expect.items():
             self.assertAlmostEqual(value, getattr(result, key), places=3,
-                                   msg="estimate `{}` failed".format(key))
+                                   msg=f"estimate `{key}` failed")
 
     @ idata([
         [AmplitudeEstimation(3), 'mle',

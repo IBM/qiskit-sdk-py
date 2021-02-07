@@ -179,7 +179,7 @@ class InstructionDurations:
         elif name in self.duration_by_name:
             duration, unit = self.duration_by_name[name]
         else:
-            raise TranspilerError("No value is found for key={}".format(key))
+            raise TranspilerError(f"No value is found for key={key}")
 
         return self._convert_unit(duration, unit, to_unit)
 

@@ -586,7 +586,7 @@ def plot_error_map(backend, figsize=(12, 9), show_title=True):
         spine.set_visible(False)
 
     if show_title:
-        fig.suptitle('{name} Error Map'.format(name=backend.name()),
+        fig.suptitle(f'{backend.name()} Error Map',
                      fontsize=24, y=0.9)
     if get_backend() in ['module://ipykernel.pylab.backend_inline',
                          'nbAgg']:

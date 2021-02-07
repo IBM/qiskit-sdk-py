@@ -302,7 +302,7 @@ def qubit_index_sort(channels: List[pulse.channels.Channel],
     sorted_map = sorted(qubit_channel_map.items(), key=lambda x: x[0])
 
     for qind, chans in sorted_map:
-        yield 'Q{index:d}'.format(index=qind), chans
+        yield f'Q{qind:d}', chans
 
 
 def time_map_in_ns(time_window: Tuple[int, int],
@@ -353,7 +353,7 @@ def time_map_in_ns(time_window: Tuple[int, int],
     else:
         label = 'System cycle time (dt)'
 
-    formatted_label = ['{val:.0f}'.format(val=val) for val in axis_label]
+    formatted_label = [f'{val:.0f}' for val in axis_label]
 
     return types.HorizontalAxis(
         window=(t0_shift, t1_shift),
@@ -372,7 +372,7 @@ def detail_title(program: Union[pulse.Waveform, pulse.ParametricPulse, pulse.Sch
     title_str = list()
 
     # add program name
-    title_str.append('Name: {name}'.format(name=program.name))
+    title_str.append(f'Name: {program.name}')
 
     # add program duration
     dt = device.dt * 1e9 if device.dt else 1.
@@ -383,7 +383,7 @@ def detail_title(program: Union[pulse.Waveform, pulse.ParametricPulse, pulse.Sch
 
     # add device name
     if device.backend_name != 'no-backend':
-        title_str.append('Backend: {backend_name}'.format(backend_name=device.backend_name))
+        title_str.append(f'Backend: {device.backend_name}')
 
     return ', '.join(title_str)
 

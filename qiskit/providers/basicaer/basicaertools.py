@@ -94,7 +94,7 @@ def einsum_matmul_index(gate_indices, number_of_qubits):
 
     # Combine indices into matrix multiplication string format
     # for numpy.einsum function
-    return "{mat_l}{mat_r}, ".format(mat_l=mat_l, mat_r=mat_r) + \
+    return f"{mat_l}{mat_r}, " + \
            "{tens_lin}{tens_r}->{tens_lout}{tens_r}".format(tens_lin=tens_lin,
                                                             tens_lout=tens_lout,
                                                             tens_r=tens_r)
@@ -122,7 +122,7 @@ def einsum_vecmul_index(gate_indices, number_of_qubits):
 
     # Combine indices into matrix multiplication string format
     # for numpy.einsum function
-    return "{mat_l}{mat_r}, ".format(mat_l=mat_l, mat_r=mat_r) + \
+    return f"{mat_l}{mat_r}, " + \
            "{tens_lin}->{tens_lout}".format(tens_lin=tens_lin,
                                             tens_lout=tens_lout)
 
