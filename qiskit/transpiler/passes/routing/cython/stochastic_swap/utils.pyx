@@ -160,6 +160,40 @@ cdef class NLayout:
                 out[qreg[idx]] = self.logic_to_phys[main_idx]
                 main_idx += 1
         return out
+
+    def __getstate__(self):
+        return {'num_logical': self.l2p_len, 'num_physical': self.p2l_len,
+                'logic_to_phys': np.asarray(
+                    <unsigned int[:self.l2p_len]>self.logic_to_phys,
+                    np.uint32),
+                'phys_to_logic': np.asarray(
+                    <unsigned int[:self.p2l_len]>self.phys_to_logic,
+                    np.uint32)}
+
+    def __setstate__(self, state):
+        self.l2p_len = state['num_logical']
+        self.p2l_len = state['num_physical']
+        cdef unsigned int[:] logic_to_phys_array = state['logic_to_phys']
+        cdef unsigned int[:] phys_to_logic_array = state['phys_to_logic']
+        if self.logic_to_phys is not NULL:
+            free(self.logic_to_phys)
+            self.logic_to_phys = NULL
+        if self.phys_to_logic is not NULL:
+            free(self.phys_to_logic)
+            self.phys_to_logic = NULL
+        self.logic_to_phys = <unsigned int *>calloc(self.l2p_len,
+                                                    sizeof(unsigned int))
+        self.phys_to_logic = <unsigned int *>calloc(self.p2l_len,
+                                                    sizeof(unsigned int))
+        for index in range(self.l2p_len):
+            self.logic_to_phys[index] = logic_to_phys_array[index]
+
+        for index in range(self.p2l_len):
+            self.phys_to_logic[index] = phys_to_logic_array[index]
+
+    def __reduce__(self):
+        return (self.__class__, (self.l2p_len, self.p2l_len),
+                self.__getstate__())
     
     
 cpdef NLayout nlayout_from_layout(object layout, object qregs, 
