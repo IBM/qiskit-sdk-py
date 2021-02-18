@@ -43,7 +43,7 @@ def _transform_rep(input_rep, output_rep, data, input_dim, output_dim):
         return _to_ptm(input_rep, data, input_dim, output_dim)
     if output_rep == 'Stinespring':
         return _to_stinespring(input_rep, data, input_dim, output_dim)
-    raise QiskitError('Invalid QuantumChannel {}'.format(output_rep))
+    raise QiskitError(f'Invalid QuantumChannel {output_rep}')
 
 
 def _to_choi(rep, data, input_dim, output_dim):

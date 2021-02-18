@@ -296,7 +296,7 @@ class DAGCircuit:
             self._wires.add(wire)
 
             try:
-                wire_name = "%s[%s]" % (wire.register.name, wire.index)
+                wire_name = f"{wire.register.name}[{wire.index}]"
             except CircuitError:
                 wire_name = "%s" % wire
 
