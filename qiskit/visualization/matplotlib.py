@@ -499,7 +499,7 @@ class MatplotlibDrawer:
                           color=linecolor, linewidth=self._lwidth2,
                           linestyle=linestyle, zorder=zorder)
 
-    def _measure(self, qxy, cxy, cid, fc=None, ec=None, gt=None, sc=None):
+    def _measure(self, qxy, cxy, cid, fc=None, ec=None, gt=None, sc=None, basis='z'):
         qx, qy = qxy
         cx, cy = cxy
 
@@ -524,6 +524,13 @@ class MatplotlibDrawer:
             self._ax.text(cx + .25, cy + .1, str(cid), ha='left', va='bottom',
                           fontsize=0.8 * self._style['fs'], color=self._style['tc'],
                           clip_on=True, zorder=PORDER_TEXT)
+
+        # measurement basis label
+        if basis != 'z':
+            self._ax.text(qx - 0.4 * WID, qy + 0.25 * HIG, basis.upper(),
+                          color=self._style['not_gate_lc'],
+                          clip_on=True, zorder=PORDER_TEXT, fontsize=0.5 * self._style['fs'],
+                          fontweight='bold')
 
     def _conditional(self, xy, istrue=False):
         xpos, ypos = xy
@@ -792,7 +799,7 @@ class MatplotlibDrawer:
             # compute the layer_width for this layer
             #
             for op in layer:
-                if op.name in [*_barrier_gates, 'measure']:
+                if op.name in [*_barrier_gates, 'measure', 'measure_pauli']:
                     continue
 
                 base_name = None if not hasattr(op.op, 'base_gate') else op.op.base_gate.name
@@ -932,8 +939,12 @@ class MatplotlibDrawer:
                 # draw special gates
                 #
                 if op.name == 'measure':
+                    basis = 'z'
+                if op.name == 'meaure_pauli':
+                    basis = op.params
+
                     vv = self._creg_dict[c_idxs[0]]['index']
-                    self._measure(q_xy[0], c_xy[0], vv, fc=fc, ec=ec, gt=gt, sc=sc)
+                    self._measure(q_xy[0], c_xy[0], vv, fc=fc, ec=ec, gt=gt, sc=sc, basis=basis)
 
                 elif op.name in _barrier_gates:
                     _barriers = {'coord': [], 'group': []}
