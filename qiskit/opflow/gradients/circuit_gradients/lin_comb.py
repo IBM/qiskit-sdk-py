@@ -294,7 +294,7 @@ class LinComb(CircuitGradient):
 
         Raises:
             OpflowError: If the input gate is controlled by another state but '|1>^{\otimes k}'
-            TypeError: If the input gate is not a supported parametrized gate.
+            TypeError: If the input gate is not a supported parameterized gate.
         """
 
         # pylint: disable=too-many-return-statements
@@ -376,7 +376,7 @@ class LinComb(CircuitGradient):
                 coeffs_gates.append(c_g)
             return coeffs_gates
 
-        raise TypeError(f'Unrecognized parametrized gate, {gate}')
+        raise TypeError(f'Unrecognized parameterized gate, {gate}')
 
     @staticmethod
     def apply_grad_gate(circuit, gate, param_index, grad_gate, grad_coeff, qr_superpos,
