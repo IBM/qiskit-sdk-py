@@ -65,7 +65,7 @@ class Unroller(TransformationPass):
                     continue
             if node.op._directive:
                 raise QiskitError(
-                    'Cannot unroll unsupported directive instruction {}'.format(node.name))
+                    f'Cannot unroll unsupported directive instruction {node.name}')
 
             # TODO: allow choosing other possible decompositions
             try:

@@ -24,8 +24,30 @@ class Bit:
     def __init__(self, register=None, index=None):
         """Create a new generic bit.
         """
+        if (register, index) == (None, None):
+            self._register = None
+            self._index = None
+            # To sidestep the overridden Bit.__hash__ and use the default hash
+            # algorithm (only new-style Bits), call default object hash method.
+            self._hash = object.__hash__(self)
+        else:
+            try:
+                index = int(index)
+            except Exception:
+                raise CircuitError("index needs to be castable to an int: type %s was provided" %
+                                   type(index))
+
+            if index < 0:
+                index += register.size
+
+            if index >= register.size:
+                raise CircuitError("index must be under the size of the register: %s was provided" %
+                                   index)
+
+            self._register = register
+            self._index = index
             self._hash = hash((self._register, self._index))
-            self._repr = "%s(%s, %s)" % (self.__class__.__name__,
+            self._repr = "{}({}, {})".format(self.__class__.__name__,
                                          self._register, self._index)
 
     @property
@@ -48,6 +70,7 @@ class Bit:
         """Return the official string representing the bit."""
         if (self._register, self._index) == (None, None):
             # Similar to __hash__, use default repr method for new-style Bits.
+            return object.__repr__(self)
         return self._repr
 
     def __hash__(self):

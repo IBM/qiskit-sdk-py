@@ -68,7 +68,7 @@ class UnrollCustomDefinitions(TransformationPass):
 
             if node.op._directive:
                 raise QiskitError(
-                    'Cannot unroll unsupported directive instruction {}'.format(node.name))
+                    f'Cannot unroll unsupported directive instruction {node.name}')
 
             try:
                 rule = node.op.definition.data
