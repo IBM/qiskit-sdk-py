@@ -48,7 +48,7 @@ class Bit:
             self._index = index
             self._hash = hash((self._register, self._index))
             self._repr = "{}({}, {})".format(self.__class__.__name__,
-                                         self._register, self._index)
+                                             self._register, self._index)
 
     @property
     def register(self):
