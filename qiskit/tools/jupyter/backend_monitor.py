@@ -175,7 +175,7 @@ tr:nth-child(even) {background-color: #f6f6f6;}
 
     upper_str += "<tr><th>Property</th><th>Value</th></tr>"
     for key in upper_list:
-        upper_str += "<tr><td><font style='font-weight:bold'>%s</font></td><td>%s</td></tr>" % (
+        upper_str += "<tr><td><font style='font-weight:bold'>{}</font></td><td>{}</td></tr>".format(
             key, config_dict[key])
     upper_str += footer
 
@@ -211,7 +211,7 @@ tr:nth-child(even) {background-color: #f6f6f6;}
     lower_str += "<tr><th></th><th></th></tr>"
     for key in lower_list:
         if key != 'name':
-            lower_str += "<tr><td>%s</td><td>%s</td></tr>" % (
+            lower_str += "<tr><td>{}</td><td>{}</td></tr>".format(
                 key, config_dict[key])
     lower_str += footer
 

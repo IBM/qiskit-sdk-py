@@ -125,7 +125,7 @@ def backend_widget(backend):
     config = backend.configuration().to_dict()
     props = backend.properties().to_dict()
 
-    name = widgets.HTML(value="<h4>{name}</h4>".format(name=backend.name()),
+    name = widgets.HTML(value=f"<h4>{backend.name()}</h4>",
                         layout=widgets.Layout())
 
     num_qubits = config['n_qubits']
@@ -135,10 +135,10 @@ def backend_widget(backend):
         if config['quantum_volume']:
             qv_val = config['quantum_volume']
 
-    qubit_count = widgets.HTML(value="<h5><b>{qubits}</b></h5>".format(qubits=num_qubits),
+    qubit_count = widgets.HTML(value=f"<h5><b>{num_qubits}</b></h5>",
                                layout=widgets.Layout(justify_content='center'))
 
-    qv_value = widgets.HTML(value="<h5>{qubits}</h5>".format(qubits=qv_val),
+    qv_value = widgets.HTML(value=f"<h5>{qv_val}</h5>",
                             layout=widgets.Layout(justify_content='center'))
 
     cmap = widgets.Output(layout=widgets.Layout(min_width='250px', max_width='250px',
@@ -187,7 +187,7 @@ def backend_widget(backend):
                             num_cx += 1
         avg_cx_err = round(sum_cx_err/(num_cx), 4)
 
-    cx_widget = widgets.HTML(value="<h5>{cx_err}</h5>".format(cx_err=avg_cx_err),
+    cx_widget = widgets.HTML(value=f"<h5>{avg_cx_err}</h5>",
                              layout=widgets.Layout())
 
     avg_meas_err = 0
@@ -196,7 +196,7 @@ def backend_widget(backend):
             if item['name'] == 'readout_error':
                 avg_meas_err += item['value']
     avg_meas_err = round(avg_meas_err/num_qubits, 4)
-    meas_widget = widgets.HTML(value="<h5>{meas_err}</h5>".format(meas_err=avg_meas_err),
+    meas_widget = widgets.HTML(value=f"<h5>{avg_meas_err}</h5>",
                                layout=widgets.Layout())
 
     out = widgets.VBox([name, cmap, qubit_count, qv_value, pending, is_oper, least_busy,

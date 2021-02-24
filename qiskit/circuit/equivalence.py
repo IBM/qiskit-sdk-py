@@ -209,9 +209,9 @@ class EquivalenceLibrary():
             name, num_qubits = key
             equivalences = self._get_equivalences(key)
 
-            basis = frozenset(['{}/{}'.format(name, num_qubits)])
+            basis = frozenset([f'{name}/{num_qubits}'])
             for params, decomp in equivalences:
-                decomp_basis = frozenset('{}/{}'.format(name, num_qubits)
+                decomp_basis = frozenset(f'{name}/{num_qubits}'
                                          for name, num_qubits in
                                          {(inst.name, inst.num_qubits)
                                           for inst, _, __ in decomp.data})
@@ -224,7 +224,7 @@ class EquivalenceLibrary():
                                                         'label': str(set(decomp_basis))})
                     node_map[decomp_basis] = decomp_basis_node
 
-                label = "%s\n%s" % (
+                label = "{}\n{}".format(
                     str(params), str(decomp) if num_qubits <= 5 else '...')
                 graph.add_edge(node_map[basis],
                                node_map[decomp_basis],

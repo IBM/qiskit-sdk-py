@@ -114,8 +114,8 @@ class GateConfig:
         return False
 
     def __repr__(self):
-        out_str = "GateConfig(%s, %s, %s" % (self.name, self.parameters,
-                                             self.qasm_def)
+        out_str = "GateConfig({}, {}, {}".format(self.name, self.parameters,
+                                                 self.qasm_def)
         for i in ['coupling_map', 'latency_map', 'conditional', 'description']:
             if hasattr(self, i):
                 out_str += ', ' + repr(getattr(self, i))
@@ -179,7 +179,7 @@ class UchannelLO:
         return False
 
     def __repr__(self):
-        return "UchannelLO(%s, %s)" % (self.q, self.scale)
+        return f"UchannelLO({self.q}, {self.scale})"
 
 
 class QasmBackendConfiguration:
@@ -702,7 +702,7 @@ class PulseBackendConfiguration(QasmBackendConfiguration):
             Qubit drive channel.
         """
         if not 0 <= qubit < self.n_qubits:
-            raise BackendConfigurationError("Invalid index for {}-qubit system.".format(qubit))
+            raise BackendConfigurationError(f"Invalid index for {qubit}-qubit system.")
         return DriveChannel(qubit)
 
     def measure(self, qubit: int) -> MeasureChannel:
@@ -715,7 +715,7 @@ class PulseBackendConfiguration(QasmBackendConfiguration):
             Qubit measurement stimulus line.
         """
         if not 0 <= qubit < self.n_qubits:
-            raise BackendConfigurationError("Invalid index for {}-qubit system.".format(qubit))
+            raise BackendConfigurationError(f"Invalid index for {qubit}-qubit system.")
         return MeasureChannel(qubit)
 
     def acquire(self, qubit: int) -> AcquireChannel:
@@ -728,7 +728,7 @@ class PulseBackendConfiguration(QasmBackendConfiguration):
             Qubit measurement acquisition line.
         """
         if not 0 <= qubit < self.n_qubits:
-            raise BackendConfigurationError("Invalid index for {}-qubit systems.".format(qubit))
+            raise BackendConfigurationError(f"Invalid index for {qubit}-qubit systems.")
         return AcquireChannel(qubit)
 
     def control(self, qubits: Iterable[int] = None,
@@ -781,7 +781,7 @@ class PulseBackendConfiguration(QasmBackendConfiguration):
         try:
             return self._channel_qubit_map[channel]
         except KeyError:
-            raise BackendConfigurationError("Couldn't find the Channel - {}".format(channel))
+            raise BackendConfigurationError(f"Couldn't find the Channel - {channel}")
         except AttributeError:
             raise BackendConfigurationError("This backend - '{}' does not provide channel "
                                             "information.".format(self.backend_name))
@@ -811,7 +811,7 @@ class PulseBackendConfiguration(QasmBackendConfiguration):
                 channels.update(self._qubit_channel_map[qubit])
             return list(channels)
         except KeyError:
-            raise BackendConfigurationError("Couldn't find the qubit - {}".format(qubit))
+            raise BackendConfigurationError(f"Couldn't find the qubit - {qubit}")
         except AttributeError:
             raise BackendConfigurationError("This backend - '{}' does not provide channel "
                                             "information.".format(self.backend_name))
@@ -897,4 +897,4 @@ class PulseBackendConfiguration(QasmBackendConfiguration):
         try:
             return channel_prefix.group('channel'), int(channel_prefix.group('index'))
         except AttributeError:
-            raise BackendConfigurationError("Invalid channel name - '{}' found.".format(channel))
+            raise BackendConfigurationError(f"Invalid channel name - '{channel}' found.")

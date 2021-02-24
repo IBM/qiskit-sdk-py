@@ -378,7 +378,7 @@ class SparsePauliOp(LinearOp):
         num_qubits = len(PauliTable._from_label(obj[0][0]))
         size = len(obj)
         coeffs = np.zeros(size, dtype=complex)
-        labels = np.zeros(size, dtype='<U{}'.format(num_qubits))
+        labels = np.zeros(size, dtype=f'<U{num_qubits}')
         for i, item in enumerate(obj):
             labels[i] = item[0]
             coeffs[i] = item[1]

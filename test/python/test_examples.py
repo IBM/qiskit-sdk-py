@@ -46,9 +46,9 @@ class TestPythonExamples(QiskitTestCase):
                                                stderr=subprocess.PIPE,
                                                env={**os.environ, "PYTHONIOENCODING": "utf8"})
                 stdout, stderr = run_example.communicate()
-                error_string = "Running example %s failed with return code %s\n" % (
+                error_string = "Running example {} failed with return code {}\n".format(
                     example, run_example.returncode)
-                error_string += "stdout:%s\nstderr: %s" % (
+                error_string += "stdout:{}\nstderr: {}".format(
                     stdout, stderr)
                 self.assertEqual(run_example.returncode, 0, error_string)
 
@@ -74,7 +74,7 @@ class TestPythonExamples(QiskitTestCase):
                                                stderr=subprocess.PIPE,
                                                env={**os.environ, "PYTHONIOENCODING": "utf8"})
                 stdout, stderr = run_example.communicate()
-                error_string = "Running example %s failed with return code %s\n" % (
+                error_string = "Running example {} failed with return code {}\n".format(
                     example, run_example.returncode)
-                error_string += "\tstdout:%s\n\tstderr: %s" % (stdout, stderr)
+                error_string += f"\tstdout:{stdout}\n\tstderr: {stderr}"
                 self.assertEqual(run_example.returncode, 0, error_string)

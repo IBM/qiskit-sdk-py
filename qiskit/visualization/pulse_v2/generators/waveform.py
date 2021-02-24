@@ -191,7 +191,7 @@ def gen_ibmq_latex_waveform_name(data: types.PulseInstruction,
                 angle_val = match_dict['angle']
                 frac = Fraction(int(int(angle_val)/2), 180)
                 if frac.numerator == 1:
-                    angle = r'\pi/{denom:d}'.format(denom=frac.denominator)
+                    angle = fr'\pi/{frac.denominator:d}'
                 else:
                     angle = r'{num:d}/{denom:d} \pi'.format(num=frac.numerator,
                                                             denom=frac.denominator)
@@ -204,11 +204,11 @@ def gen_ibmq_latex_waveform_name(data: types.PulseInstruction,
                 else:
                     frac = Fraction(int(angle_val), 180)
                     if frac.numerator == 1:
-                        angle = r'\pi/{denom:d}'.format(denom=frac.denominator)
+                        angle = fr'\pi/{frac.denominator:d}'
                     else:
                         angle = r'{num:d}/{denom:d} \pi'.format(num=frac.numerator,
                                                                 denom=frac.denominator)
-            latex_name = r'{}({}{})'.format(op_name, sign, angle)
+            latex_name = fr'{op_name}({sign}{angle})'
         else:
             latex_name = None
 
@@ -278,10 +278,10 @@ def gen_waveform_max_value(data: types.PulseInstruction,
     if np.abs(ydata.real[re_maxind]) > 0.01:
         # generator shows only 2 digits after the decimal point.
         if ydata.real[re_maxind] > 0:
-            max_val = u'{val:.2f}\n\u25BE'.format(val=ydata.real[re_maxind])
+            max_val = '{val:.2f}\n\u25BE'.format(val=ydata.real[re_maxind])
             re_style = {'va': 'bottom'}
         else:
-            max_val = u'\u25B4\n{val:.2f}'.format(val=ydata.real[re_maxind])
+            max_val = '\u25B4\n{val:.2f}'.format(val=ydata.real[re_maxind])
             re_style = {'va': 'top'}
         re_style.update(style)
         re_text = drawings.TextData(data_type=types.LabelType.PULSE_INFO,
@@ -297,10 +297,10 @@ def gen_waveform_max_value(data: types.PulseInstruction,
     if np.abs(ydata.imag[im_maxind]) > 0.01:
         # generator shows only 2 digits after the decimal point.
         if ydata.imag[im_maxind] > 0:
-            max_val = u'{val:.2f}\n\u25BE'.format(val=ydata.imag[im_maxind])
+            max_val = '{val:.2f}\n\u25BE'.format(val=ydata.imag[im_maxind])
             im_style = {'va': 'bottom'}
         else:
-            max_val = u'\u25B4\n{val:.2f}'.format(val=ydata.imag[im_maxind])
+            max_val = '\u25B4\n{val:.2f}'.format(val=ydata.imag[im_maxind])
             im_style = {'va': 'top'}
         im_style.update(style)
         im_text = drawings.TextData(data_type=types.LabelType.PULSE_INFO,

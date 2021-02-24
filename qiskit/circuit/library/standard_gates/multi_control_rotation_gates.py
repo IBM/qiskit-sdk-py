@@ -192,7 +192,7 @@ def mcry(self, theta, q_controls, q_target, q_ancillae=None, mode=None,
             _apply_mcu_graycode(self, theta_step, 0, 0, control_qubits,
                                 target_qubit, use_basis_gates=use_basis_gates)
     else:
-        raise QiskitError('Unrecognized mode for building MCRY circuit: {}.'.format(mode))
+        raise QiskitError(f'Unrecognized mode for building MCRY circuit: {mode}.')
 
 
 def mcrz(self, lam, q_controls, q_target, use_basis_gates=False):

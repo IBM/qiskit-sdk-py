@@ -831,7 +831,7 @@ class TestOpConstruction(QiskitOpflowTestCase):
         self.assertTrue(starts_with_indent)
         indented_str_content = (
             indented_str[len(op.INDENTATION):]
-        ).split("\n{}".format(op.INDENTATION))
+        ).split(f"\n{op.INDENTATION}")
         self.assertListEqual(indented_str_content, initial_str.split("\n"))
 
     def test_composed_op_immutable_under_eval(self):
@@ -859,7 +859,7 @@ class TestOpConstruction(QiskitOpflowTestCase):
         op = PrimitiveOp(qc,
                          coeff=l)
 
-        params = set([phi, l, *theta.params])
+        params = {phi, l, *theta.params}
 
         self.assertEqual(params, op.parameters)
         self.assertEqual(params, StateFn(op).parameters)

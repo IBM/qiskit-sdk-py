@@ -199,7 +199,7 @@ class RunningPassManager:
         return dag
 
     def _log_pass(self, start_time, end_time, name):
-        log_msg = "Pass: %s - %.5f (ms)" % (
+        log_msg = "Pass: {} - {:.5f} (ms)".format(
             name, (end_time - start_time) * 1000)
         logger.info(log_msg)
 

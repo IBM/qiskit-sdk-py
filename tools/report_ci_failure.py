@@ -80,7 +80,7 @@ class CIFailureReporter:
         report_exists = self._check_report_existence(issue_number, stamp)
         if not report_exists:
             _, body = _branch_is_failing_template(branch, commit, infourl)
-            message_body = '{}\n{}'.format(stamp, body)
+            message_body = f'{stamp}\n{body}'
             self._post_new_comment(issue_number, message_body)
 
     def _check_report_existence(self, issue_number, target):
@@ -99,7 +99,7 @@ class CIFailureReporter:
         repo = self._api.get_repo(self._repo)
         stamp = _branch_is_failing_stamp(branch, commit)
         title, body = _branch_is_failing_template(branch, commit, infourl)
-        message_body = '{}\n{}'.format(stamp, body)
+        message_body = f'{stamp}\n{body}'
         repo.create_issue(title=title, body=message_body,
                           labels=[key_label])
 
@@ -110,15 +110,15 @@ class CIFailureReporter:
 
 
 def _branch_is_failing_template(branch, commit, infourl):
-    title = 'Branch `{}` is failing'.format(branch)
-    body = 'Trying to build `{}` at commit {} failed.'.format(branch, commit)
+    title = f'Branch `{branch}` is failing'
+    body = f'Trying to build `{branch}` at commit {commit} failed.'
     if infourl:
-        body += '\nMore info at: {}'.format(infourl)
+        body += f'\nMore info at: {infourl}'
     return title, body
 
 
 def _branch_is_failing_stamp(branch, commit):
-    return '<!-- commit {}@{} -->'.format(commit, branch)
+    return f'<!-- commit {commit}@{branch} -->'
 
 
 _REPOSITORY = 'Qiskit/qiskit-terra'
@@ -144,11 +144,11 @@ def _get_job_name():
 def _get_info_url():
     if os.getenv('TRAVIS'):
         job_id = os.getenv('TRAVIS_JOB_ID')
-        return 'https://travis-ci.com/{}/jobs/{}'.format(_REPOSITORY, job_id)
+        return f'https://travis-ci.com/{_REPOSITORY}/jobs/{job_id}'
 
     if os.getenv('APPVEYOR'):
         build_id = os.getenv('APPVEYOR_BUILD_ID')
-        return 'https://ci.appveyor.com/project/{}/build/{}'.format(_REPOSITORY, build_id)
+        return f'https://ci.appveyor.com/project/{_REPOSITORY}/build/{build_id}'
 
     return None
 

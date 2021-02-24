@@ -147,7 +147,7 @@ class UnitarySimulatorPy(BaseBackend):
                           2 ** self._number_of_qubits)
         if shape != required_shape:
             raise BasicAerError('initial unitary is incorrect shape: ' +
-                                '{} != 2 ** {}'.format(shape, required_shape))
+                                f'{shape} != 2 ** {required_shape}')
 
     def _set_options(self, qobj_config=None, backend_options=None):
         """Set the backend options for all experiments in a qobj"""
@@ -357,9 +357,9 @@ class UnitarySimulatorPy(BaseBackend):
         n_qubits = qobj.config.n_qubits
         max_qubits = self.configuration().n_qubits
         if n_qubits > max_qubits:
-            raise BasicAerError('Number of qubits {} '.format(n_qubits) +
-                                'is greater than maximum ({}) '.format(max_qubits) +
-                                'for "{}".'.format(self.name()))
+            raise BasicAerError(f'Number of qubits {n_qubits} ' +
+                                f'is greater than maximum ({max_qubits}) ' +
+                                f'for "{self.name()}".')
         if hasattr(qobj.config, 'shots') and qobj.config.shots != 1:
             logger.info('"%s" only supports 1 shot. Setting shots=1.',
                         self.name())

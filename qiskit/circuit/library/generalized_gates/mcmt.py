@@ -80,7 +80,7 @@ class MCMT(QuantumCircuit):
         super().__init__(num_qubits, name='mcmt')
 
         if label is None:
-            self.label = '{}-{}'.format(num_target_qubits, self.gate.name.capitalize())
+            self.label = f'{num_target_qubits}-{self.gate.name.capitalize()}'
         else:
             self.label = label
 
@@ -139,7 +139,7 @@ class MCMT(QuantumCircuit):
             elif isinstance(gate, str):
                 name = gate
             else:
-                raise AttributeError('Invalid gate specified: {}'.format(gate))
+                raise AttributeError(f'Invalid gate specified: {gate}')
             base_gate = valid_gates[name]
 
         return base_gate
@@ -309,13 +309,13 @@ def mcmt(self, gate, control_qubits, target_qubits, ancilla_qubits=None, mode='n
         if isinstance(ancilla_qubits, (int, Qubit)):
             ancilla_qubits = [ancilla_qubits]
         elif len(ancilla_qubits) < num_ancillas:
-            raise QiskitError('Insufficient number of ancilla qubits, need {}'.format(num_ancillas))
+            raise QiskitError(f'Insufficient number of ancilla qubits, need {num_ancillas}')
 
         return self.append(mcmt_gate,
                            control_qubits[:] + target_qubits[:] + ancilla_qubits[:num_ancillas],
                            [])
 
-    raise QiskitError('Invalid mode specified: {}'.format(mode))
+    raise QiskitError(f'Invalid mode specified: {mode}')
 
 
 QuantumCircuit.mcmt = mcmt

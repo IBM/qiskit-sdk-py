@@ -157,8 +157,8 @@ class SingleQubitUnitary(Gate):
         if isinstance(parameter, np.ndarray):
             return parameter
         else:
-            raise CircuitError("invalid param type {0} in gate "
-                               "{1}".format(type(parameter), self.name))
+            raise CircuitError("invalid param type {} in gate "
+                               "{}".format(type(parameter), self.name))
 
 
 # pylint: disable=unused-argument, invalid-name, missing-type-doc, missing-param-doc

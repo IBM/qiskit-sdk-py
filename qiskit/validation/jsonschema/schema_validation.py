@@ -216,9 +216,9 @@ def _format_causes(err, level=0):
     def _format_path(path):
         def _format(item):
             if isinstance(item, str):
-                return '.{}'.format(item)
+                return f'.{item}'
 
-            return '[{}]'.format(item)
+            return f'[{item}]'
 
         return ''.join(['<root>'] + list(map(_format, path)))
 

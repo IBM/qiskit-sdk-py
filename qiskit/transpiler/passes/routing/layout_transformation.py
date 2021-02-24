@@ -89,14 +89,14 @@ class LayoutTransformation(TransformationPass):
             try:
                 from_layout = self.property_set[from_layout]
             except Exception:
-                raise TranspilerError('No {} (from_layout) in property_set.'.format(from_layout))
+                raise TranspilerError(f'No {from_layout} (from_layout) in property_set.')
 
         to_layout = self.to_layout
         if isinstance(to_layout, str):
             try:
                 to_layout = self.property_set[to_layout]
             except Exception:
-                raise TranspilerError('No {} (to_layout) in property_set.'.format(to_layout))
+                raise TranspilerError(f'No {to_layout} (to_layout) in property_set.')
 
         # Find the permutation between the initial physical qubits and final physical qubits.
         permutation = {pqubit: to_layout.get_virtual_bits()[vqubit]

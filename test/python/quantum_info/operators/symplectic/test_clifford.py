@@ -386,7 +386,7 @@ class TestCliffordSynthesis(QiskitTestCase):
     def test_decompose_1q(self):
         """Test synthesis for all 1-qubit Cliffords"""
         for cliff in self._cliffords_1q():
-            with self.subTest(msg='Test circuit {}'.format(cliff)):
+            with self.subTest(msg=f'Test circuit {cliff}'):
                 target = cliff
                 value = Clifford(cliff.to_circuit())
                 self.assertEqual(target, value)

@@ -195,7 +195,7 @@ class Pauli(BasePauli):
 
     def __repr__(self):
         """Display representation."""
-        return "Pauli('{}')".format(self.__str__())
+        return f"Pauli('{self.__str__()}')"
 
     def __str__(self):
         """Print representation."""
@@ -619,7 +619,7 @@ class Pauli(BasePauli):
     def _from_scalar_op(cls, op):
         """Convert a ScalarOp to BasePauli data."""
         if op.num_qubits is None:
-            raise QiskitError('{} is not an N-qubit identity'.format(op))
+            raise QiskitError(f'{op} is not an N-qubit identity')
         base_z = np.zeros((1, op.num_qubits), dtype=bool)
         base_x = np.zeros((1, op.num_qubits), dtype=bool)
         base_phase = np.mod(
@@ -1041,7 +1041,7 @@ def _phase_from_label(label):
     label = label.replace('+', '', 1).replace('1', '', 1).replace('j', 'i', 1)
     phases = {'': 0, '-i': 1, '-': 2, 'i': 3}
     if label not in phases:
-        raise QiskitError("Invalid Pauli phase label '{}'".format(label))
+        raise QiskitError(f"Invalid Pauli phase label '{label}'")
     return phases.get(label)
 
 

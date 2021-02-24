@@ -130,7 +130,7 @@ class CommonUtilitiesMixin:
 
     def assertResult(self, result, circuit):
         """Fetches the QASM in circuit.name file and compares it with result."""
-        qasm_name = '%s_%s.qasm' % (type(self).__name__, circuit.name)
+        qasm_name = '{}_{}.qasm'.format(type(self).__name__, circuit.name)
         filename = QiskitTestCase._get_resource_path(qasm_name, Path.QASMS)
 
         if self.regenerate_expected:

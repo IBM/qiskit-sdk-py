@@ -76,7 +76,7 @@ class Result:
                 value_str = "'%s'" % self._metadata[key]
             else:
                 value_str = repr(self._metadata[key])
-            out += ", %s=%s" % (key, value_str)
+            out += f", {key}={value_str}"
         out += ')'
         return out
 
@@ -226,7 +226,7 @@ class Result:
             elif meas_level == MeasLevel.RAW:
                 return postprocess.format_level_0_memory(memory)
             else:
-                raise QiskitError('Measurement level {} is not supported'.format(meas_level))
+                raise QiskitError(f'Measurement level {meas_level} is not supported')
 
         except KeyError:
             raise QiskitError(

@@ -726,7 +726,7 @@ class Statevector(QuantumState, TolerancesMixin):
         # circuit decomposition definition if it exists, otherwise we
         # cannot compose this gate and raise an error.
         if obj.definition is None:
-            raise QiskitError('Cannot apply Instruction: {}'.format(obj.name))
+            raise QiskitError(f'Cannot apply Instruction: {obj.name}')
         if not isinstance(obj.definition, QuantumCircuit):
             raise QiskitError('{} instruction definition is {}; expected QuantumCircuit'.format(
                 obj.name, type(obj.definition)))

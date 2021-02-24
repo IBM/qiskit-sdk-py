@@ -166,7 +166,7 @@ class TestPauliProperties(QiskitTestCase):
         value = str(pauli[qubits])
         val_array = np.array(list(reversed(label)))[qubits]
         target = ''.join(reversed(val_array.tolist()))
-        self.assertEqual(value, target, msg='indices = {}'.format(qubits))
+        self.assertEqual(value, target, msg=f'indices = {qubits}')
 
     @data((0, 'iY', 'iIIY'), ([1, 0], 'XZ', 'IZX'),
           (slice(None, None, None), 'XYZ', 'XYZ'),

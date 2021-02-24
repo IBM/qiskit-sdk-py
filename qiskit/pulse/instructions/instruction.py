@@ -60,7 +60,7 @@ class Instruction(ABC):
         """
         for channel in channels:
             if not isinstance(channel, Channel):
-                raise PulseError("Expected a channel, got {} instead.".format(channel))
+                raise PulseError(f"Expected a channel, got {channel} instead.")
 
         if duration is not None:
             warnings.warn('Specifying duration in the constructor is deprecated. '
@@ -355,4 +355,4 @@ class Instruction(ABC):
     def __repr__(self) -> str:
         operands = ', '.join(str(op) for op in self.operands)
         return "{}({}{})".format(self.__class__.__name__, operands,
-                                 ", name='{}'".format(self.name) if self.name else "")
+                                 f", name='{self.name}'" if self.name else "")

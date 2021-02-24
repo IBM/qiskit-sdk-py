@@ -459,7 +459,7 @@ class BasePauli(BaseOperator, AdjointMixin, MultiplyMixin):
             # Check if gate is a valid Clifford basis gate string
             if gate not in basis_1q and gate not in basis_2q:
                 raise QiskitError(
-                    "Invalid Clifford gate name string {}".format(gate))
+                    f"Invalid Clifford gate name string {gate}")
             name = gate
         else:
             # Assume gate is an Instruction
@@ -468,7 +468,7 @@ class BasePauli(BaseOperator, AdjointMixin, MultiplyMixin):
         # Apply gate if it is a Clifford basis gate
         if name in non_clifford:
             raise QiskitError(
-                "Cannot update Pauli with non-Clifford gate {}".format(name))
+                f"Cannot update Pauli with non-Clifford gate {name}")
         if name in basis_1q:
             if len(qargs) != 1:
                 raise QiskitError("Invalid qubits for 1-qubit gate.")
@@ -481,7 +481,7 @@ class BasePauli(BaseOperator, AdjointMixin, MultiplyMixin):
         # If not a Clifford basis gate we try to unroll the gate and
         # raise an exception if unrolling reaches a non-Clifford gate.
         if gate.definition is None:
-            raise QiskitError('Cannot apply Instruction: {}'.format(gate.name))
+            raise QiskitError(f'Cannot apply Instruction: {gate.name}')
         if not isinstance(gate.definition, QuantumCircuit):
             raise QiskitError(
                 '{} instruction definition is {}; expected QuantumCircuit'.format(

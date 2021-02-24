@@ -261,8 +261,8 @@ class Isometry(Instruction):
         if isinstance(parameter, np.ndarray):
             return parameter
         else:
-            raise CircuitError("invalid param type {0} for gate  "
-                               "{1}".format(type(parameter), self.name))
+            raise CircuitError("invalid param type {} for gate  "
+                               "{}".format(type(parameter), self.name))
 
     def inverse(self):
         """Return the adjoint of the unitary."""

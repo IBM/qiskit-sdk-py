@@ -561,7 +561,7 @@ class MatplotlibDrawer:
             top = min(qubits) > min_ctbit
 
         # display the control qubits as open or closed based on ctrl_state
-        cstate = "{:b}".format(ctrl_state).rjust(num_ctrl_qubits, '0')[::-1]
+        cstate = f"{ctrl_state:b}".rjust(num_ctrl_qubits, '0')[::-1]
         for i in range(num_ctrl_qubits):
             fc_open_close = ec if cstate[i] == '1' else self._style['bg']
             text_top = None
@@ -669,9 +669,9 @@ class MatplotlibDrawer:
                             name=self._layout[reg.index].register.name,
                             index=self._layout[reg.index].index, physical=reg.index)
                     else:
-                        qreg_name = '${{{physical}}}$'.format(physical=reg.index)
+                        qreg_name = f'${{{reg.index}}}$'
             else:
-                qreg_name = '{name}'.format(name=reg.register.name)
+                qreg_name = f'{reg.register.name}'
             qreg_name = _fix_double_script(qreg_name) + initial_qbit
             text_width = self._get_text_width(qreg_name, fs) * 1.15
 
@@ -691,7 +691,7 @@ class MatplotlibDrawer:
             for ii, (reg, nreg) in enumerate(itertools.zip_longest(self._creg, n_creg)):
                 pos = y_off - idx
                 if self._cregbundle:
-                    creg_name = '{}'.format(reg.register.name)
+                    creg_name = f'{reg.register.name}'
                     creg_name = _fix_double_script(creg_name) + initial_cbit
                     text_width = self._get_text_width(reg.register.name, fs) * 1.15
                     if text_width > longest_reg_name_width:
@@ -701,7 +701,7 @@ class MatplotlibDrawer:
                     if not (not nreg or reg.register != nreg.register):
                         continue
                 else:
-                    creg_name = '${}_{{{}}}$'.format(reg.register.name, reg.index)
+                    creg_name = f'${reg.register.name}_{{{reg.index}}}$'
                     creg_name = _fix_double_script(creg_name) + initial_cbit
                     text_width = self._get_text_width(reg.register.name, fs) * 1.15
                     if text_width > longest_reg_name_width:
@@ -814,7 +814,7 @@ class MatplotlibDrawer:
                     param = self._param_parse(op.op.params)
                     if op.name == 'initialize':
                         param = '[%s]' % param
-                    param = "${}$".format(param)
+                    param = f"${param}$"
                     param_width = self._get_text_width(param, fontsize=sfs,
                                                        param=True) + 0.08
                 else:
@@ -1006,7 +1006,7 @@ class MatplotlibDrawer:
                     else:
                         stext = 'ZZ'
                     self._sidetext(qreg_b, tc=tc,
-                                   text='{}'.format(stext) + ' ' + '({})'.format(param))
+                                   text=f'{stext}' + ' ' + f'({param})')
                     self._line(qreg_b, qreg_t, lc=lc)
 
                 # swap gate
@@ -1033,15 +1033,15 @@ class MatplotlibDrawer:
                     self._line(qreg_b, qreg_t, lc=lc)
                     if num_qargs == 1:
                         self._gate(q_xy[num_ctrl_qubits], fc=fc, ec=ec, gt=gt, sc=sc,
-                                   text=gate_text, subtext='{}'.format(param))
+                                   text=gate_text, subtext=f'{param}')
                     else:
                         self._multiqubit_gate(q_xy[num_ctrl_qubits:], fc=fc, ec=ec, gt=gt,
-                                              sc=sc, text=gate_text, subtext='{}'.format(param))
+                                              sc=sc, text=gate_text, subtext=f'{param}')
 
                 # draw multi-qubit gate as final default
                 else:
                     self._multiqubit_gate(q_xy, fc=fc, ec=ec, gt=gt, sc=sc,
-                                          text=gate_text, subtext='{}'.format(param))
+                                          text=gate_text, subtext=f'{param}')
 
             # adjust the column if there have been barriers encountered, but not plotted
             barrier_offset = 0

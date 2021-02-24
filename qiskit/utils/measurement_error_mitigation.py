@@ -136,7 +136,7 @@ def build_measurement_error_mitigation_qobj(qubit_list, fitter_cls, backend,
         # TODO support different calibration
         raise QiskitError("Does not support TensoredMeasFitter yet.")
     else:
-        raise QiskitError("Unknown fitter {}".format(fitter_cls))
+        raise QiskitError(f"Unknown fitter {fitter_cls}")
 
     # the provided `qubit_list` would be used as the initial layout to
     # assure the consistent qubit mapping used in the main circuits.

@@ -232,7 +232,7 @@ class InstructionScheduleMap():
         # validation of target qubit
         qubits = _to_tuple(qubits)
         if qubits == ():
-            raise PulseError("Cannot add definition {} with no target qubits.".format(instruction))
+            raise PulseError(f"Cannot add definition {instruction} with no target qubits.")
 
         # TODO this block will be removed
         if isinstance(schedule, ParameterizedSchedule):
@@ -258,7 +258,7 @@ class InstructionScheduleMap():
         if callable(schedule):
             func_parameters = list(inspect.signature(schedule).parameters.keys())
         else:
-            func_parameters = set(param.name for param in schedule.parameters)
+            func_parameters = {param.name for param in schedule.parameters}
 
         if arguments is None:
             # for backward compatibility
@@ -340,7 +340,7 @@ class InstructionScheduleMap():
             if len(qubits) == 1:
                 single_q_insts += "  q{qubit}: {insts}\n".format(qubit=qubits[0], insts=insts)
             else:
-                multi_q_insts += "  {qubits}: {insts}\n".format(qubits=qubits, insts=insts)
+                multi_q_insts += f"  {qubits}: {insts}\n"
         instructions = single_q_insts + multi_q_insts
         return ("<{name}({insts})>"
                 "".format(name=self.__class__.__name__, insts=instructions))

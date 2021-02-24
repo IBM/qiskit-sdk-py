@@ -59,7 +59,7 @@ class BasicAerProvider(BaseProvider):
                 name = resolved_name
             except LookupError:
                 raise QiskitBackendNotFoundError(
-                    "The '{}' backend is not installed in your system.".format(name))
+                    f"The '{name}' backend is not installed in your system.")
 
         return super().get_backend(name=name, **kwargs)
 

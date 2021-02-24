@@ -103,11 +103,11 @@ def validate_entangler_map(entangler_map, num_qubits, allow_double_entanglement=
     for src, targ in ret_map:
         if src < 0 or src >= num_qubits:
             raise ValueError(
-                'Qubit entangle source value {} invalid for {} qubits'.format(src, num_qubits))
+                f'Qubit entangle source value {src} invalid for {num_qubits} qubits')
         if targ < 0 or targ >= num_qubits:
             raise ValueError(
-                'Qubit entangle target value {} invalid for {} qubits'.format(targ, num_qubits))
+                f'Qubit entangle target value {targ} invalid for {num_qubits} qubits')
         if not allow_double_entanglement and [targ, src] in ret_map:
-            raise ValueError('Qubit {} and {} cross-entangled.'.format(src, targ))
+            raise ValueError(f'Qubit {src} and {targ} cross-entangled.')
 
     return ret_map

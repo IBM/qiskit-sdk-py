@@ -349,7 +349,7 @@ class Initialize(Instruction):
         if self._from_label:
             if parameter in ['0', '1', '+', '-', 'l', 'r']:
                 return parameter
-            raise CircuitError("invalid param label {0} for instruction {1}. Label should be "
+            raise CircuitError("invalid param label {} for instruction {}. Label should be "
                                "0, 1, +, -, l, or r ".format(type(parameter), self.name))
 
         # Initialize instruction parameter can be int, float, and complex.
@@ -358,8 +358,8 @@ class Initialize(Instruction):
         elif isinstance(parameter, np.number):
             return complex(parameter.item())
         else:
-            raise CircuitError("invalid param type {0} for instruction  "
-                               "{1}".format(type(parameter), self.name))
+            raise CircuitError("invalid param type {} for instruction  "
+                               "{}".format(type(parameter), self.name))
 
 
 def initialize(self, params, qubits=None):

@@ -79,8 +79,8 @@ class Nduv:
         return False
 
     def __repr__(self):
-        return "Nduv(%s, %s, %s, %s)" % (repr(self.date), self.name, self.unit,
-                                         self.value)
+        return "Nduv({}, {}, {}, {})".format(repr(self.date), self.name, self.unit,
+                                             self.value)
 
 
 class Gate:
@@ -304,7 +304,7 @@ class BackendProperties:
                 raise BackendPropertyError("Provide qubits to get {n} of {g}".format(n=name,
                                                                                      g=gate))
         except KeyError:
-            raise BackendPropertyError("Could not find the desired property for {g}".format(g=gate))
+            raise BackendPropertyError(f"Could not find the desired property for {gate}")
         return result
 
     def faulty_qubits(self):
@@ -491,4 +491,4 @@ class BackendProperties:
         try:
             return apply_prefix(value, unit)
         except Exception:
-            raise BackendPropertyError("Could not understand units: {u}".format(u=unit))
+            raise BackendPropertyError(f"Could not understand units: {unit}")

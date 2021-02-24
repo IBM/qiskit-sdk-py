@@ -383,7 +383,7 @@ def _input_formatter(obj, fallback_class, func_name, arg_name):
         'SuperOp, Choi) object instead.'.format(func_name, arg_name),
         DeprecationWarning)
     warnings.warn(
-        'Treating array input as a {} object'.format(fallback_class.__name__))
+        f'Treating array input as a {fallback_class.__name__} object')
     return fallback_class(obj)
 
 

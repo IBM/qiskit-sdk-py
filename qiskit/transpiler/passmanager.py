@@ -155,8 +155,8 @@ class PassManager:
                 new_passmanager.append(other)
                 return new_passmanager
             except TranspilerError:
-                raise TypeError('unsupported operand type + for %s and %s' % (self.__class__,
-                                                                              other.__class__))
+                raise TypeError('unsupported operand type + for {} and {}'.format(self.__class__,
+                                                                                  other.__class__))
 
     @staticmethod
     def _normalize_passes(passes: Union[BasePass, List[BasePass], FlowController])\

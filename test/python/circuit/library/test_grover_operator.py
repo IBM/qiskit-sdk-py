@@ -1,4 +1,3 @@
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2017, 2020.
@@ -76,7 +75,7 @@ class TestGroverOperator(QiskitTestCase):
         oracle.z(3)
         grover_op = GroverOperator(oracle, reflection_qubits=[0, 3])
         dag = circuit_to_dag(grover_op)
-        self.assertEqual(set(wire.index for wire in dag.idle_wires()), {1, 2})
+        self.assertEqual({wire.index for wire in dag.idle_wires()}, {1, 2})
 
     def test_custom_state_in(self):
         """Test passing a custom state_in operator."""

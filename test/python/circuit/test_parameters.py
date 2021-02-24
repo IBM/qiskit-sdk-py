@@ -613,7 +613,7 @@ class TestParameters(QiskitTestCase):
         cr = ClassicalRegister(3)
 
         circuit = QuantumCircuit(qr, cr)
-        parameters = [Parameter('x{}'.format(i))
+        parameters = [Parameter(f'x{i}')
                       for i in range(num_processes)]
 
         results = parallel_map(_construct_circuit,

@@ -212,7 +212,7 @@ class StabilizerTable(PauliTable, AdjointMixin):
 
     def __str__(self):
         """String representation"""
-        return 'StabilizerTable: {}'.format(self.to_labels())
+        return f'StabilizerTable: {self.to_labels()}'
 
     def __eq__(self, other):
         """Test if two StabilizerTables are equal"""

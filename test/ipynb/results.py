@@ -125,9 +125,9 @@ class Results:
 
             if os.path.exists(os.path.join(SWD, fullpath_reference)):
                 ratio, diff_name = Results._similarity_ratio(fullpath_name, fullpath_reference)
-                title = '<tt><b>%s</b> | %s </tt> | ratio: %s' % (name,
-                                                                  self.data[name]['testname'],
-                                                                  ratio)
+                title = '<tt><b>{}</b> | {} </tt> | ratio: {}'.format(name,
+                                                                      self.data[name]['testname'],
+                                                                      ratio)
                 if ratio == 1:
                     self.exact_match.append(fullpath_name)
                 else:

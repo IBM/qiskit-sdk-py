@@ -196,8 +196,7 @@ class CouplingMap:
         paths = rx.digraph_dijkstra_shortest_paths(
             self.graph, source=physical_qubit1, target=physical_qubit2, as_undirected=True)
         if not paths:
-            raise CouplingError(
-                "Nodes %s and %s are not connected" % (str(physical_qubit1), str(physical_qubit2)))
+            raise CouplingError(f"Nodes {physical_qubit1} and {physical_qubit2} are not connected")
         return paths[physical_qubit2]
 
     @property
@@ -317,7 +316,7 @@ class CouplingMap:
         string = ""
         if self.get_edges():
             string += "["
-            string += ", ".join(["[%s, %s]" % (src, dst) for (src, dst) in self.get_edges()])
+            string += ", ".join([f"[{src}, {dst}]" for (src, dst) in self.get_edges()])
             string += "]"
         return string
 

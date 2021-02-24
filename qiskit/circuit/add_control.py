@@ -102,7 +102,7 @@ def control(operation: Union[Gate, ControlledGate],
     q_target = QuantumRegister(operation.num_qubits, name='target')
     q_ancillae = None  # TODO: add
     controlled_circ = QuantumCircuit(q_control, q_target,
-                                     name='c_{}'.format(operation.name))
+                                     name=f'c_{operation.name}')
     global_phase = 0
     if operation.name == 'x' or (
             isinstance(operation, controlledgate.ControlledGate) and
@@ -197,10 +197,10 @@ def control(operation: Union[Gate, ControlledGate],
     # is named like "cc<base_gate.name>", else it is named like
     # "c<num_ctrl_qubits><base_name>".
     if new_num_ctrl_qubits > 2:
-        ctrl_substr = 'c{:d}'.format(new_num_ctrl_qubits)
+        ctrl_substr = f'c{new_num_ctrl_qubits:d}'
     else:
         ctrl_substr = ('{0}' * new_num_ctrl_qubits).format('c')
-    new_name = '{}{}'.format(ctrl_substr, base_name)
+    new_name = f'{ctrl_substr}{base_name}'
     cgate = controlledgate.ControlledGate(new_name,
                                           controlled_circ.num_qubits,
                                           operation.params,

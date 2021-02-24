@@ -222,7 +222,7 @@ class VQE(VariationalAlgorithm, MinimumEigensolver):
     @property
     def setting(self):
         """Prepare the setting of VQE as a string."""
-        ret = "Algorithm: {}\n".format(self.__class__.__name__)
+        ret = f"Algorithm: {self.__class__.__name__}\n"
         params = ""
         for key, value in self.__dict__.items():
             if key[0] == "_":
@@ -230,7 +230,7 @@ class VQE(VariationalAlgorithm, MinimumEigensolver):
                     params += "-- {}: {}\n".format(key[1:], "Random seed")
                 else:
                     params += "-- {}: {}\n".format(key[1:], value)
-        ret += "{}".format(params)
+        ret += f"{params}"
         return ret
 
     def print_settings(self):
@@ -243,18 +243,18 @@ class VQE(VariationalAlgorithm, MinimumEigensolver):
         ret = "\n"
         ret += "==================== Setting of {} ============================\n".format(
             self.__class__.__name__)
-        ret += "{}".format(self.setting)
+        ret += f"{self.setting}"
         ret += "===============================================================\n"
         if hasattr(self._var_form, 'setting'):
-            ret += "{}".format(self._var_form.setting)
+            ret += f"{self._var_form.setting}"
         elif hasattr(self._var_form, 'print_settings'):
-            ret += "{}".format(self._var_form.print_settings())
+            ret += f"{self._var_form.print_settings()}"
         elif isinstance(self._var_form, QuantumCircuit):
             ret += "var_form is a custom circuit"
         else:
             ret += "var_form has not been set"
         ret += "===============================================================\n"
-        ret += "{}".format(self._optimizer.setting)
+        ret += f"{self._optimizer.setting}"
         ret += "===============================================================\n"
         return ret
 

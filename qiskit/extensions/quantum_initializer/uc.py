@@ -273,8 +273,8 @@ class UCGate(Gate):
         if isinstance(parameter, np.ndarray):
             return parameter
         else:
-            raise CircuitError("invalid param type {0} in gate "
-                               "{1}".format(type(parameter), self.name))
+            raise CircuitError("invalid param type {} in gate "
+                               "{}".format(type(parameter), self.name))
 
 
 def uc(self, gate_list, q_controls, q_target, up_to_diagonal=False):
