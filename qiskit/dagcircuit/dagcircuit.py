@@ -219,6 +219,13 @@ class DAGCircuit:
         """
         if not self.calibrations or node.name not in self.calibrations:
             return False
+
+        for cals in self.calibrations.values():
+            for qubit, params in cals.keys():
+                if (len(qubit) > 0 and isinstance(qubit[0], ParameterExpression)) or \
+                        (len(params) > 0 and isinstance(params[0], ParameterExpression)):
+                    return True
+
         qubits = tuple(qubit.index for qubit in node.qargs)
         params = []
         for p in node.op.params:
