@@ -30,9 +30,9 @@ class LayoutTransformation(TransformationPass):
 
     def __init__(self, coupling_map: CouplingMap,
                  from_layout: Union[Layout, str],
-                 to_layout: Union[Layout, str],
+                 to_layout: Union[Layout, str] = None,
                  seed: Union[int, np.random.default_rng] = None,
-                 trials=4):
+                 trials: int = 4):
         """LayoutTransformation initializer.
 
         Args:
@@ -42,10 +42,12 @@ class LayoutTransformation(TransformationPass):
             from_layout (Union[Layout, str]):
                 The starting layout of qubits onto physical qubits.
                 If the type is str, look up `property_set` when this pass runs.
+                If None, it will map to the trivial layout.
 
             to_layout (Union[Layout, str]):
                 The final layout of qubits on physical qubits.
                 If the type is str, look up `property_set` when this pass runs.
+                if None, use trivial.
 
             seed (Union[int, np.random.default_rng]):
                 Seed to use for random trials.
@@ -61,7 +63,7 @@ class LayoutTransformation(TransformationPass):
             graph = coupling_map.graph.to_undirected()
         else:
             self.coupling_map = CouplingMap.from_full(len(to_layout))
-            graph = self.coupling_map.graph.to_undirected()
+            graph = self.coupling_map.graph
         self.token_swapper = ApproximateTokenSwapper(graph, seed)
         self.trials = trials
 
@@ -86,24 +88,31 @@ class LayoutTransformation(TransformationPass):
 
         from_layout = self.from_layout
         if isinstance(from_layout, str):
-            try:
-                from_layout = self.property_set[from_layout]
-            except Exception:
-                raise TranspilerError('No {} (from_layout) in property_set.'.format(from_layout))
+            if self.property_set[from_layout] is None:
+                raise TranspilerError('No property_set["{}"] (from_layout).'.format(from_layout))
+            from_layout = self.property_set[from_layout]
 
         to_layout = self.to_layout
-        if isinstance(to_layout, str):
-            try:
-                to_layout = self.property_set[to_layout]
-            except Exception:
+
+        if to_layout is None:
+            to_layout = Layout.generate_trivial_layout(*dag.qregs.values())
+        elif isinstance(to_layout, str):
+            to_layout = self.property_set[to_layout]
+            if to_layout is None:
                 raise TranspilerError('No {} (to_layout) in property_set.'.format(to_layout))
+        else:
+            raise TranspilerError('to_layout parameter should be a Layout, a string, or None.')
 
         # Find the permutation between the initial physical qubits and final physical qubits.
-        permutation = {pqubit: to_layout.get_virtual_bits()[vqubit]
-                       for vqubit, pqubit in from_layout.get_virtual_bits().items()}
+        permutation = {pqubit: self.property_set['layout'][vqubit] for vqubit, pqubit in
+                       from_layout.get_virtual_bits().items()}
 
         perm_circ = self.token_swapper.permutation_circuit(permutation, self.trials)
 
         qubits = [dag.qubits[i[0]] for i in sorted(perm_circ.inputmap.items(), key=lambda x: x[0])]
         dag.compose(perm_circ.circuit, qubits=qubits)
+
+        # Reset the layout to trivial
+        self.property_set["layout"] = Layout.generate_trivial_layout(*dag.qregs.values())
+
         return dag

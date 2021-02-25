@@ -35,13 +35,14 @@ from qiskit.transpiler.passes import BasicSwap
 from qiskit.transpiler.passes import LookaheadSwap
 from qiskit.transpiler.passes import StochasticSwap
 from qiskit.transpiler.passes import SabreSwap
+from qiskit.transpiler.passes import LayoutTransformation
 from qiskit.transpiler.passes import FullAncillaAllocation
 from qiskit.transpiler.passes import EnlargeWithAncilla
 from qiskit.transpiler.passes import FixedPoint
 from qiskit.transpiler.passes import Depth
 from qiskit.transpiler.passes import RemoveResetInZeroState
 from qiskit.transpiler.passes import Optimize1qGatesDecomposition
-from qiskit.transpiler.passes import ApplyLayout
+from qiskit.transpiler.passes import ApplyLayoutSwaps
 from qiskit.transpiler.passes import CheckCXDirection
 from qiskit.transpiler.passes import Layout2qDistance
 from qiskit.transpiler.passes import Collect2qBlocks
@@ -90,6 +91,7 @@ def level_1_pass_manager(pass_manager_config: PassManagerConfig) -> PassManager:
     instruction_durations = pass_manager_config.instruction_durations
     seed_transpiler = pass_manager_config.seed_transpiler
     backend_properties = pass_manager_config.backend_properties
+    restore_layout = pass_manager_config.restore_layout
 
     # 1. Use trivial layout if no layout given
     _given_layout = SetLayout(initial_layout)
@@ -118,7 +120,7 @@ def level_1_pass_manager(pass_manager_config: PassManagerConfig) -> PassManager:
                property_set['trivial_layout_score'] != 0
 
     # 3. Extend dag/layout with ancillas using the full coupling map
-    _embed = [FullAncillaAllocation(coupling_map), EnlargeWithAncilla(), ApplyLayout()]
+    _embed = [FullAncillaAllocation(coupling_map), EnlargeWithAncilla()]
 
     # 4. Decompose so only 1-qubit and 2-qubit gates remain
     _unroll3q = Unroll3qOrMore()
@@ -143,6 +145,9 @@ def level_1_pass_manager(pass_manager_config: PassManagerConfig) -> PassManager:
                             'CheckMap Error: {check_map_msg}', action='raise')]
     else:
         raise TranspilerError("Invalid routing method %s." % routing_method)
+
+    _restore_layout = [LayoutTransformation(coupling_map, 'layout_out', None,
+                                                 seed=seed_transpiler, trials=4)]
 
     # 6. Unroll to the basis
     if translation_method == 'unroller':
@@ -197,9 +202,11 @@ def level_1_pass_manager(pass_manager_config: PassManagerConfig) -> PassManager:
         pm1.append(_choose_layout_and_score, condition=_choose_layout_condition)
         pm1.append(_improve_layout, condition=_not_perfect_yet)
         pm1.append(_embed)
+        pm1.append(ApplyLayoutSwaps(coupling_map, seed=seed_transpiler, trials=4))
         pm1.append(_unroll3q)
         pm1.append(_swap_check)
         pm1.append(_swap, condition=_swap_condition)
+        pm1.append(_restore_layout)
     pm1.append(_unroll)
     if coupling_map and not coupling_map.is_symmetric:
         pm1.append(_direction_check)
