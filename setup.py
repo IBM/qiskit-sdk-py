@@ -26,9 +26,15 @@ with open('requirements.txt') as f:
     REQUIREMENTS = f.read().splitlines()
 
 # Add Cython extensions here
-CYTHON_EXTS = ['utils', 'swap_trial']
-CYTHON_MODULE = 'qiskit.transpiler.passes.routing.cython.stochastic_swap'
-CYTHON_SOURCE_DIR = 'qiskit/transpiler/passes/routing/cython/stochastic_swap'
+# A mapping from extension source file to module names
+CYTHON_EXTS = {
+        'qiskit/transpiler/passes/routing/cython/stochastic_swap/utils':
+            'qiskit.transpiler.passes.routing.cython.stochastic_swap.utils',
+        'qiskit/transpiler/passes/routing/cython/stochastic_swap/swap_trial':
+            'qiskit.transpiler.passes.routing.cython.stochastic_swap.swap_trial',
+        'qiskit/transpiler/routing/fast_path':
+            'qiskit.transpiler.routing.fast_path'
+        }
 
 INCLUDE_DIRS = []
 # Extra link args
@@ -47,14 +53,14 @@ else:
 
 EXT_MODULES = []
 # Add Cython Extensions
-for ext in CYTHON_EXTS:
-    mod = Extension(CYTHON_MODULE + '.' + ext,
-                    sources=[CYTHON_SOURCE_DIR + '/' + ext + '.pyx'],
+for src, module in CYTHON_EXTS.items():
+    ext = Extension(module,
+                    sources=[src + '.pyx'],
                     include_dirs=INCLUDE_DIRS,
                     extra_compile_args=COMPILER_FLAGS,
                     extra_link_args=LINK_FLAGS,
                     language='c++')
-    EXT_MODULES.append(mod)
+    EXT_MODULES.append(ext)
 
 # Read long description from README.
 README_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)),
