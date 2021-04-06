@@ -1328,7 +1328,7 @@ class ParameterizedSchedule:
     a set of parameters. Calling ``bind`` on the class will return a ``Schedule``.
     """
 
-    def __init__(self, *schedules, parameters: Optional[Dict[str, Union[float, complex]]] = None,
+    def __init__(self, *schedules, parameters: Optional[Dict[str, complex]] = None,
                  name: Optional[str] = None):
 
         warnings.warn('ParameterizedSchedule is deprecated. Use Schedule with '
@@ -1360,8 +1360,8 @@ class ParameterizedSchedule:
         return self._parameters
 
     def bind_parameters(self,
-                        *args: Union[int, float, complex, ParameterExpression],
-                        **kwargs: Union[int, float, complex, ParameterExpression]) -> Schedule:
+                        *args: Union[complex, ParameterExpression],
+                        **kwargs: Union[complex, ParameterExpression]) -> Schedule:
         """Generate the Schedule from params to evaluate command expressions"""
         bound_schedule = Schedule(name=self.name)
         schedules = list(self._schedules)
@@ -1402,8 +1402,8 @@ class ParameterizedSchedule:
 
         return bound_schedule
 
-    def __call__(self, *args: Union[int, float, complex, ParameterExpression],
-                 **kwargs: Union[int, float, complex, ParameterExpression]) -> Schedule:
+    def __call__(self, *args: Union[complex, ParameterExpression],
+                 **kwargs: Union[complex, ParameterExpression]) -> Schedule:
         return self.bind_parameters(*args, **kwargs)
 
 

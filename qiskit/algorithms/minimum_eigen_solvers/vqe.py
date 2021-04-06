@@ -521,7 +521,7 @@ class VQE(VariationalAlgorithm, MinimumEigensolver):
         return min_vector
 
     @property
-    def optimal_params(self) -> List[float]:
+    def optimal_params(self) -> np.ndarray:
         """The optimal parameters for the ansats."""
         if self._ret.optimal_point is None:
             raise AlgorithmError("Cannot find optimal params before running the algorithm.")
