@@ -153,6 +153,8 @@ class QCircuitImage:
 % \usepackage[landscape]{geometry}
 % Comment out the above line if using the beamer documentclass.
 \begin{document}
+% Delete the command below if there are no CP, CU1, RZZ in the circuit.
+\newlength{\glen}
 """
         qcircuit_line = r"""
 \begin{equation*}
@@ -289,14 +291,14 @@ class QCircuitImage:
             columns += 1
 
         # all gates take up 1 column except from those with side labels (ie cu1, cp, rzz)
-        # which take 4 columns
+        # which take 5 columns
         for layer in self.ops:
             column_width = 1
             for op in layer:
                 base_type = None if not hasattr(op.op, 'base_gate') else op.op.base_gate
                 if isinstance(op.op, RZZGate) or isinstance(base_type, (U1Gate, PhaseGate,
                                                                         RZZGate)):
-                    column_width = 4
+                    column_width = 5
             columns += column_width
 
         # every 3 characters is roughly one extra 'unit' of width in the cell
@@ -508,8 +510,11 @@ class QCircuitImage:
                                                            + "}")
         self._latex[wire_last][col] = "\\control \\qw"
         # Put side text to the right between bottom wire in wire_list and the one above it
-        self._latex[wire_max-1][col+1] = "\\dstick{\\hspace{2.0em}%s} \\qw" % gate_text
-        return 4    # num_cols for side text gates
+        # \settowidth allows redefining \glen to the width of the gate. This avoids overlapping.
+        self._latex[wire_max][col] += (" \\cds{-1}{\\settowidth{\\glen}{\\ensuremath{%s}}"
+                                       " \\hspace{0.5em}\\hspace{\\glen}\\ensuremath{%s}}"
+                                       % (gate_text, gate_text))
+        return 5    # num_cols for side text gates
 
     def _build_measure(self, op, col):
         """Build a meter and the lines to the creg"""
