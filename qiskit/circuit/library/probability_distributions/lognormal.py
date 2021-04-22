@@ -13,8 +13,8 @@
 """The log-normal probability distribution circuit."""
 
 from typing import Tuple, List, Union, Optional
+import warnings
 import numpy as np
-from scipy.stats import multivariate_normal
 from qiskit.circuit import QuantumCircuit
 from .normal import _check_bounds_valid, _check_dimensions_match
 
@@ -103,6 +103,11 @@ class LogNormalDistribution(QuantumCircuit):
                 with a diagonal for a more efficient circuit.
             name: The name of the circuit.
         """
+        warnings.warn('`LogNormalDistribution` is deprecated as of version 0.17.0 and will be '
+                      'removed no earlier than 3 months after the release date. '
+                      'It moved to qiskit_finance.circuit.library.LogNormalDistribution.',
+                      DeprecationWarning, stacklevel=2)
+
         _check_dimensions_match(num_qubits, mu, sigma, bounds)
         _check_bounds_valid(bounds)
 
@@ -133,8 +138,9 @@ class LogNormalDistribution(QuantumCircuit):
 
         # compute the normalized, truncated probabilities
         probabilities = []
+        from scipy.stats import multivariate_normal
+
         for x_i in x:
-            # pylint: disable=line-too-long
             # map probabilities from normal to log-normal reference:
             # https://stats.stackexchange.com/questions/214997/multivariate-log-normal-probabiltiy-density-function-pdf
             if np.min(x_i) > 0:
