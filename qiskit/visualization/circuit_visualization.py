@@ -518,5 +518,6 @@ def _matplotlib_circuit_drawer(circuit,
                                        plot_barriers=plot_barriers, layout=layout,
                                        fold=fold, ax=ax, initial_state=initial_state,
                                        cregbundle=cregbundle, global_phase=global_phase,
-                                       qregs=circuit.qregs, cregs=circuit.cregs)
+                                       qregs=circuit.qregs, cregs=circuit.cregs,
+                                       calibrations=circuit.calibrations)
     return qcd.draw(filename)

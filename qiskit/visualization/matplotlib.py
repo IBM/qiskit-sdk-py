@@ -115,7 +115,7 @@ class MatplotlibDrawer:
     def __init__(self, qubits, clbits, ops,
                  scale=None, style=None, plot_barriers=True,
                  layout=None, fold=25, ax=None, initial_state=False,
-                 cregbundle=True, global_phase=None, qregs=None, cregs=None):
+                 cregbundle=True, global_phase=None, qregs=None, cregs=None, calibrations=None):
 
         if not HAS_MATPLOTLIB:
             raise ImportError('The class MatplotlibDrawer needs matplotlib. '
@@ -164,6 +164,7 @@ class MatplotlibDrawer:
         self._initial_state = initial_state
         self._cregbundle = cregbundle
         self._global_phase = global_phase
+        self.calibrations = calibrations
 
         self._ast = None
         self._n_lines = 0
@@ -350,6 +351,7 @@ class MatplotlibDrawer:
 
     def _get_gate_ctrl_text(self, op):
         op_label = getattr(op.op, 'label', None)
+        print(self.calibrations)
         base_name = None if not hasattr(op.op, 'base_gate') else op.op.base_gate.name
         base_label = None if not hasattr(op.op, 'base_gate') else op.op.base_gate.label
         ctrl_text = None
