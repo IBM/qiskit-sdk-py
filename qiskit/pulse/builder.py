@@ -895,8 +895,9 @@ def _transform_context(transform: Callable[[Schedule], Schedule],
     return wrap
 
 
+# pylint: disable=unused-argument
 @_transform_context(transforms.align_left)
-def align_left() -> ContextManager[None]:
+def align_left(ignore_frames: bool = False) -> ContextManager[None]:
     """Left alignment pulse scheduling context.
 
     Pulse instructions within this context are scheduled as early as possible
@@ -919,11 +920,17 @@ def align_left() -> ContextManager[None]:
                 pulse.play(pulse.Constant(20, 1.0), d1)
 
         assert pulse_prog.ch_start_time(d0) == pulse_prog.ch_start_time(d1)
+
+    Args:
+        ignore_frames: If true then frame instructions will be ignored. This
+            should be set to true if the played Signals in this context
+            do not share any frames.
     """
 
 
+# pylint: disable=unused-argument
 @_transform_context(transforms.align_right)
-def align_right() -> ContextManager[None]:
+def align_right(ignore_frames: bool = False) -> ContextManager[None]:
     """Right alignment pulse scheduling context.
 
     Pulse instructions within this context are scheduled as late as possible
@@ -946,6 +953,11 @@ def align_right() -> ContextManager[None]:
                 pulse.play(pulse.Constant(20, 1.0), d1)
 
         assert pulse_prog.ch_stop_time(d0) == pulse_prog.ch_stop_time(d1)
+
+    Args:
+        ignore_frames: If true then frame instructions will be ignore. This
+            should be set to true if the played Signals in this context
+            do not share any frames.
     """
 
 
@@ -1315,6 +1327,12 @@ def frequency_offset(frequency: float,
         yield
     finally:
         if compensate_phase:
+            # In some alignments such as sequential and functional, the absolute position of
+            # a pulse depends on the number of pulses added after this context.
+            # Thus this logic is not always correct. Use Frame instead for this.
+            warnings.warn('Phase compensation with `compensate_phase=True` is being deprecated. '
+                          'Use Frame instead. See Qiskit-terra/#5977.', DeprecationWarning)
+
             duration = builder.context_schedule.duration - t0
             dt = active_backend().configuration().dt
             accumulated_phase = 2 * np.pi * ((duration * dt * frequency) % 1)
@@ -1440,7 +1458,7 @@ def delay(duration: int,
     append_instruction(instructions.Delay(duration, channel, name=name))
 
 
-def play(pulse: Union[library.Pulse, np.ndarray],
+def play(pulse: Union[library.Pulse, library.Signal, np.ndarray],
          channel: chans.PulseChannel, name: Optional[str] = None):
     """Play a ``pulse`` on a ``channel``.
 
@@ -1460,7 +1478,7 @@ def play(pulse: Union[library.Pulse, np.ndarray],
         channel: Channel to play pulse on.
         name: Name of the pulse.
     """
-    if not isinstance(pulse, library.Pulse):
+    if not isinstance(pulse, (library.Pulse, library.Signal)):
         pulse = library.Waveform(pulse)
 
     append_instruction(instructions.Play(pulse, channel, name=name))

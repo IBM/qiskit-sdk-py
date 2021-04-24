@@ -106,7 +106,11 @@ def _assemble_experiments(
         else:
             formatted_schedules.append(pulse.Schedule(sched))
 
-    compressed_schedules = transforms.compress_pulses(formatted_schedules)
+    frames_config = getattr(run_config, 'frames_config', None)
+    resolved_schedules = [transforms.resolve_frames(sched, frames_config)
+                          for sched in formatted_schedules]
+
+    compressed_schedules = transforms.compress_pulses(resolved_schedules)
 
     user_pulselib = {}
     experiments = []
@@ -316,5 +320,15 @@ def _assemble_config(lo_converter: converters.LoConfigConverter,
         m_los = lo_converter.get_meas_los(lo_dict)
         if m_los:
             qobj_config['meas_lo_freq'] = [freq / 1e9 for freq in m_los]
+
+    # frames config
+    frames_config = qobj_config.get('frames_config', None)
+    if frames_config:
+        frames_config_ = {}
+        for frame, settings in frames_config.items():
+            frames_config_[frame.name] = settings
+            frames_config_[frame.name]['channels'] = [ch.name for ch in settings['channels']]
+
+        qobj_config['frames_config'] = frames_config_
 
     return qobj.PulseQobjConfig(**qobj_config)
