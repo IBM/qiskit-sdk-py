@@ -354,6 +354,7 @@ class MatplotlibDrawer:
         print(self.calibrations)
         base_name = None if not hasattr(op.op, 'base_gate') else op.op.base_gate.name
         base_label = None if not hasattr(op.op, 'base_gate') else op.op.base_gate.label
+
         ctrl_text = None
         if base_label:
             gate_text = base_label
@@ -367,11 +368,12 @@ class MatplotlibDrawer:
             gate_text = base_name
         else:
             gate_text = op.name
-
         if gate_text in self._style['disptex']:
             gate_text = "{}".format(self._style['disptex'][gate_text])
         elif gate_text in (op.name, base_name) and not isinstance(op.op, (Gate, Instruction)):
             gate_text = gate_text.capitalize()
+        if op.name in self.calibrations:
+            gate_text = gate_text+"\n(cal)"
 
         return gate_text, ctrl_text
 
