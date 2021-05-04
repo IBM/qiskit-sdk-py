@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -49,7 +49,7 @@ class TestAerPauliExpectation(QiskitOpflowTestCase):
             from qiskit import Aer
 
             self.seed = 97
-            self.backend = Aer.get_backend("qasm_simulator")
+            self.backend = Aer.get_backend("aer_simulator")
             q_instance = QuantumInstance(
                 self.backend, seed_simulator=self.seed, seed_transpiler=self.seed
             )
