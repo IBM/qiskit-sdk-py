@@ -31,13 +31,16 @@ from ._dummy_passes import (PassA_TP_NR_NP, PassB_TP_RA_PA, PassC_TP_RA_PA,
 class SchedulerTestCase(QiskitTestCase):
     """Asserts for the scheduler."""
 
-    def assertScheduler(self, circuit, passmanager, expected):
+    def setUp(self):
+        self.passmanager = PassManager()
+        self.circuit = QuantumCircuit(QuantumRegister(1))
+
+    def assertScheduler(self, passmanager, expected):
         """
-        Run `transpile(circuit, passmanager)` and check
+        Run `transpile(self.circuit, passmanager)` and check
         if the passes run as expected.
 
         Args:
-            circuit (QuantumCircuit): Circuit to transform via transpilation.
             passmanager (PassManager): pass manager instance for the transpilation process
             expected (list): List of things the passes are logging
         """
@@ -69,19 +72,19 @@ class TestPassManagerInit(SchedulerTestCase):
 
     def test_passes(self):
         """ A single chain of passes, with Requests and Preserves, at __init__ time"""
-        circuit = QuantumCircuit(QuantumRegister(1))
+        self.circuit = QuantumCircuit(QuantumRegister(1))
         passmanager = PassManager(passes=[
             PassC_TP_RA_PA(),  # Request: PassA / Preserves: PassA
             PassB_TP_RA_PA(),  # Request: PassA / Preserves: PassA
             PassD_TP_NR_NP(argument1=[1, 2]),  # Requires: {}/ Preserves: {}
             PassB_TP_RA_PA()])
-        self.assertScheduler(circuit, passmanager, ['run transformation pass PassA_TP_NR_NP',
-                                                    'run transformation pass PassC_TP_RA_PA',
-                                                    'run transformation pass PassB_TP_RA_PA',
-                                                    'run transformation pass PassD_TP_NR_NP',
-                                                    'argument [1, 2]',
-                                                    'run transformation pass PassA_TP_NR_NP',
-                                                    'run transformation pass PassB_TP_RA_PA'])
+        self.assertScheduler(passmanager, ['run transformation pass PassA_TP_NR_NP',
+                                           'run transformation pass PassC_TP_RA_PA',
+                                           'run transformation pass PassB_TP_RA_PA',
+                                           'run transformation pass PassD_TP_NR_NP',
+                                           'argument [1, 2]',
+                                           'run transformation pass PassA_TP_NR_NP',
+                                           'run transformation pass PassB_TP_RA_PA'])
 
 
 class TestUseCases(SchedulerTestCase):
@@ -92,6 +95,10 @@ class TestUseCases(SchedulerTestCase):
         super().setUp()
         self.circuit = QuantumCircuit(QuantumRegister(1))
         self.passmanager = PassManager()
+        # Restoring FlowController.registered_controllers
+        FlowController.registered_controllers.clear()
+        FlowController.add_flow_controller('condition', ConditionalController)
+        FlowController.add_flow_controller('do_while', DoWhileController)
 
     def test_chain(self):
         """A single chain of passes, with Requires and Preserves."""
@@ -99,7 +106,7 @@ class TestUseCases(SchedulerTestCase):
         self.passmanager.append(PassB_TP_RA_PA())  # Requires: PassA / Preserves: PassA
         self.passmanager.append(PassD_TP_NR_NP(argument1=[1, 2]))  # Requires: {}/ Preserves: {}
         self.passmanager.append(PassB_TP_RA_PA())
-        self.assertScheduler(self.circuit, self.passmanager,
+        self.assertScheduler(self.passmanager,
                              ['run transformation pass PassA_TP_NR_NP',
                               'run transformation pass PassC_TP_RA_PA',
                               'run transformation pass PassB_TP_RA_PA',
@@ -113,7 +120,7 @@ class TestUseCases(SchedulerTestCase):
         self.passmanager.append(PassE_AP_NR_NP(True))
         self.passmanager.append(PassA_TP_NR_NP(),
                                 condition=lambda property_set: property_set['property'])
-        self.assertScheduler(self.circuit, self.passmanager,
+        self.assertScheduler(self.passmanager,
                              ['run analysis pass PassE_AP_NR_NP',
                               'set property as True',
                               'run transformation pass PassA_TP_NR_NP'])
@@ -135,7 +142,7 @@ class TestUseCases(SchedulerTestCase):
         self.passmanager.append(PassE_AP_NR_NP(False))
         self.passmanager.append(PassA_TP_NR_NP(),
                                 condition=lambda property_set: property_set['property'])
-        self.assertScheduler(self.circuit, self.passmanager,
+        self.assertScheduler(self.passmanager,
                              ['run analysis pass PassE_AP_NR_NP',
                               'set property as False'])
 
@@ -148,7 +155,7 @@ class TestUseCases(SchedulerTestCase):
              PassF_reduce_dag_property()],
             do_while=lambda property_set: not property_set['property_fixed_point'],
             condition=lambda property_set: property_set['property'])
-        self.assertScheduler(self.circuit, self.passmanager,
+        self.assertScheduler(self.passmanager,
                              ['run analysis pass PassE_AP_NR_NP',
                               'set property as True',
                               'run analysis pass PassG_calculates_dag_property',
@@ -206,7 +213,7 @@ class TestUseCases(SchedulerTestCase):
              PassF_reduce_dag_property()],
             do_while=lambda property_set: not property_set['property_fixed_point'],
             condition=lambda property_set: not property_set['property_fixed_point'])
-        self.assertScheduler(self.circuit, self.passmanager,
+        self.assertScheduler(self.passmanager,
                              ['run analysis pass PassG_calculates_dag_property',
                               'set property as 8 (from dag.property)',
                               'run analysis pass PassK_check_fixed_point_property',
@@ -256,7 +263,7 @@ class TestUseCases(SchedulerTestCase):
         self.passmanager.append([PassB_TP_RA_PA(),
                                  PassA_TP_NR_NP(),
                                  PassB_TP_RA_PA()])
-        self.assertScheduler(self.circuit, self.passmanager,
+        self.assertScheduler(self.passmanager,
                              ['run transformation pass PassA_TP_NR_NP',
                               'run transformation pass PassB_TP_RA_PA'])
 
@@ -266,7 +273,7 @@ class TestUseCases(SchedulerTestCase):
         self.passmanager.append(PassA_TP_NR_NP())
         self.passmanager.append([PassA_TP_NR_NP(), PassA_TP_NR_NP()])
         self.passmanager.append(PassA_TP_NR_NP())
-        self.assertScheduler(self.circuit, self.passmanager,
+        self.assertScheduler(self.passmanager,
                              ['run transformation pass PassA_TP_NR_NP'])
 
     def test_non_idempotent_pass(self):
@@ -275,7 +282,7 @@ class TestUseCases(SchedulerTestCase):
         self.passmanager.append([PassF_reduce_dag_property(),
                                  PassF_reduce_dag_property()])
         self.passmanager.append(PassF_reduce_dag_property())
-        self.assertScheduler(self.circuit, self.passmanager,
+        self.assertScheduler(self.passmanager,
                              ['run transformation pass PassF_reduce_dag_property',
                               'dag property = 6',
                               'run transformation pass PassF_reduce_dag_property',
@@ -305,7 +312,7 @@ class TestUseCases(SchedulerTestCase):
         passmanager = PassManager()
         passmanager.append(PassE_AP_NR_NP(argument1=1))
         passmanager.append(PassE_AP_NR_NP(argument1=1))
-        self.assertScheduler(self.circuit, passmanager,
+        self.assertScheduler(passmanager,
                              ['run analysis pass PassE_AP_NR_NP',
                               'set property as 1'])
 
@@ -316,7 +323,7 @@ class TestUseCases(SchedulerTestCase):
         passmanager.append(PassE_AP_NR_NP(argument1=1))
         passmanager.append(PassA_TP_NR_NP())
         passmanager.append(PassE_AP_NR_NP(argument1=1))
-        self.assertScheduler(self.circuit, passmanager,
+        self.assertScheduler(passmanager,
                              ['run analysis pass PassE_AP_NR_NP',
                               'set property as 1',
                               'run transformation pass PassA_TP_NR_NP',
@@ -337,7 +344,7 @@ class TestUseCases(SchedulerTestCase):
              PassA_TP_NR_NP(),
              PassF_reduce_dag_property()],
             do_while=lambda property_set: not property_set['property_fixed_point'])
-        self.assertScheduler(self.circuit, self.passmanager,
+        self.assertScheduler(self.passmanager,
                              ['run analysis pass PassG_calculates_dag_property',
                               'set property as 8 (from dag.property)',
                               'run analysis pass PassK_check_fixed_point_property',
@@ -462,7 +469,7 @@ class TestUseCases(SchedulerTestCase):
         self.passmanager.append(PassM_AP_NR_NP(argument1=1))
         self.passmanager.append(PassA_TP_NR_NP())
         self.passmanager.append(PassM_AP_NR_NP(argument1=1))
-        self.assertScheduler(self.circuit, self.passmanager,
+        self.assertScheduler(self.passmanager,
                              ['run analysis pass PassM_AP_NR_NP',
                               'self.argument1 = 2',
                               'run transformation pass PassA_TP_NR_NP',
@@ -470,11 +477,49 @@ class TestUseCases(SchedulerTestCase):
                               'self.argument1 = 2'])
 
 
+class TestBestOf(SchedulerTestCase):
+    """Testing append_best_of"""
+    def test_best_of_two(self):
+        """ The best of two analysis passes """
+        self.passmanager.append_best_of(PassE_AP_NR_NP(3), 'property')
+        self.passmanager.append_best_of(PassE_AP_NR_NP(2), 'property')
+        self.assertScheduler(self.passmanager, ['run analysis pass PassE_AP_NR_NP',
+                                                'set property as 3',
+                                                'run analysis pass PassE_AP_NR_NP',
+                                                'set property as 2'])
+        self.assertEqual(self.passmanager.property_set['property'], 2)
+
+    def test_best_of_two_reverse(self):
+        """ The worst of two analysis passes """
+        self.passmanager.append_best_of(PassE_AP_NR_NP(3), 'property')
+        self.passmanager.append_best_of(PassE_AP_NR_NP(2), 'property', reverse=True)
+        self.assertScheduler(self.passmanager, ['run analysis pass PassE_AP_NR_NP',
+                                                'set property as 3',
+                                                'run analysis pass PassE_AP_NR_NP',
+                                                'set property as 2'])
+        self.assertEqual(self.passmanager.property_set['property'], 3)
+
+    def test_best_of_two_reverse_contradiction(self):
+        """ Contradicting reverse parameter raises TranspilerError"""
+        with self.assertRaises(TranspilerError):
+            self.passmanager.append_best_of(PassE_AP_NR_NP(3), 'property', reverse=False)
+            self.passmanager.append_best_of(PassE_AP_NR_NP(2), 'property', reverse=True)
+
+    def test_stop_with_break_condition(self):
+        """ The second candidate is not executed because break condition """
+        self.passmanager.append_best_of(PassE_AP_NR_NP(3), 'property')
+        self.passmanager.append_best_of(PassE_AP_NR_NP(2), 'property',
+                                        break_condition=lambda pm: pm['property'] == 3)
+        self.assertScheduler(self.passmanager, ['run analysis pass PassE_AP_NR_NP',
+                                                'set property as 3'])
+        self.assertEqual(self.passmanager.property_set['property'], 3)
+
+
 class DoXTimesController(FlowController):
     """A control-flow plugin for running a set of passes an X amount of times."""
 
     def __init__(self, passes, options, do_x_times=0, **_):
-        self.do_x_times = do_x_times()
+        self.do_x_times = do_x_times
         super().__init__(passes, options)
 
     def __iter__(self):
@@ -495,7 +540,7 @@ class TestControlFlowPlugin(SchedulerTestCase):
         FlowController.add_flow_controller('do_x_times', DoXTimesController)
         self.passmanager.append([PassB_TP_RA_PA(), PassC_TP_RA_PA()],
                                 do_x_times=lambda x: 3)
-        self.assertScheduler(self.circuit, self.passmanager,
+        self.assertScheduler(self.passmanager,
                              ['run transformation pass PassA_TP_NR_NP',
                               'run transformation pass PassB_TP_RA_PA',
                               'run transformation pass PassC_TP_RA_PA',
@@ -692,8 +737,8 @@ class TestPassManagerReuse(SchedulerTestCase):
                     'run transformation pass PassC_TP_RA_PA',
                     'run transformation pass PassB_TP_RA_PA']
 
-        self.assertScheduler(self.circuit, self.passmanager, expected)
-        self.assertScheduler(self.circuit, self.passmanager, expected)
+        self.assertScheduler(self.passmanager, expected)
+        self.assertScheduler(self.passmanager, expected)
 
     def test_conditional_twice(self):
         """ Run a conditional twice. """
@@ -705,8 +750,8 @@ class TestPassManagerReuse(SchedulerTestCase):
                     'set property as True',
                     'run transformation pass PassA_TP_NR_NP']
 
-        self.assertScheduler(self.circuit, self.passmanager, expected)
-        self.assertScheduler(self.circuit, self.passmanager, expected)
+        self.assertScheduler(self.passmanager, expected)
+        self.assertScheduler(self.passmanager, expected)
 
     def test_fixed_point_twice(self):
         """A fixed point scheduler, twice."""
@@ -759,8 +804,8 @@ class TestPassManagerReuse(SchedulerTestCase):
                     'run transformation pass PassF_reduce_dag_property',
                     'dag property = 2']
 
-        self.assertScheduler(self.circuit, self.passmanager, expected)
-        self.assertScheduler(self.circuit, self.passmanager, expected)
+        self.assertScheduler(self.passmanager, expected)
+        self.assertScheduler(self.passmanager, expected)
 
 
 class TestPassManagerChanges(SchedulerTestCase):
@@ -773,25 +818,27 @@ class TestPassManagerChanges(SchedulerTestCase):
 
     def test_replace0(self):
         """ Test passmanager.replace(0, ...)."""
-        self.passmanager.append(PassC_TP_RA_PA())  # Request: PassA / Preserves: PassA
-        self.passmanager.append(PassB_TP_RA_PA())  # Request: PassA / Preserves: PassA
+        passmanager = PassManager()
+        passmanager.append(PassC_TP_RA_PA())  # Request: PassA / Preserves: PassA
+        passmanager.append(PassB_TP_RA_PA())  # Request: PassA / Preserves: PassA
 
-        self.passmanager.replace(0, PassB_TP_RA_PA())
+        passmanager.replace(0, PassB_TP_RA_PA())
 
         expected = ['run transformation pass PassA_TP_NR_NP',
                     'run transformation pass PassB_TP_RA_PA']
-        self.assertScheduler(self.circuit, self.passmanager, expected)
+        self.assertScheduler(passmanager, expected)
 
     def test_replace1(self):
         """ Test passmanager.replace(1, ...)."""
-        self.passmanager.append(PassC_TP_RA_PA())  # Request: PassA / Preserves: PassA
-        self.passmanager.append(PassB_TP_RA_PA())  # Request: PassA / Preserves: PassA
+        passmanager = PassManager()
+        passmanager.append(PassC_TP_RA_PA())  # Request: PassA / Preserves: PassA
+        passmanager.append(PassB_TP_RA_PA())  # Request: PassA / Preserves: PassA
 
-        self.passmanager.replace(1, PassC_TP_RA_PA())
+        passmanager.replace(1, PassC_TP_RA_PA())
 
         expected = ['run transformation pass PassA_TP_NR_NP',
                     'run transformation pass PassC_TP_RA_PA']
-        self.assertScheduler(self.circuit, self.passmanager, expected)
+        self.assertScheduler(passmanager, expected)
 
     def test_remove0(self):
         """ Test passmanager.remove(0)."""
@@ -827,33 +874,36 @@ class TestPassManagerChanges(SchedulerTestCase):
 
     def test_setitem(self):
         """ Test passmanager[1] = ..."""
-        self.passmanager.append(PassC_TP_RA_PA())  # Request: PassA / Preserves: PassA
-        self.passmanager.append(PassB_TP_RA_PA())  # Request: PassA / Preserves: PassA
+        passmanager = PassManager()
+        passmanager.append(PassC_TP_RA_PA())  # Request: PassA / Preserves: PassA
+        passmanager.append(PassB_TP_RA_PA())  # Request: PassA / Preserves: PassA
 
-        self.passmanager[1] = PassC_TP_RA_PA()
+        passmanager[1] = PassC_TP_RA_PA()
 
         expected = ['run transformation pass PassA_TP_NR_NP',
                     'run transformation pass PassC_TP_RA_PA']
-        self.assertScheduler(self.circuit, self.passmanager, expected)
+        self.assertScheduler(passmanager, expected)
 
     def test_replace_with_conditional(self):
         """ Replace a pass with a conditional pass. """
-        self.passmanager.append(PassE_AP_NR_NP(False))
-        self.passmanager.append(PassB_TP_RA_PA())
+        passmanager = PassManager()
+        passmanager.append(PassE_AP_NR_NP(False))
+        passmanager.append(PassB_TP_RA_PA())
 
-        self.passmanager.replace(1, PassA_TP_NR_NP(),
-                                 condition=lambda property_set: property_set['property'])
+        passmanager.replace(1, PassA_TP_NR_NP(),
+                            condition=lambda property_set: property_set['property'])
 
         expected = ['run analysis pass PassE_AP_NR_NP',
                     'set property as False']
-        self.assertScheduler(self.circuit, self.passmanager, expected)
+        self.assertScheduler(passmanager, expected)
 
     def test_replace_error(self):
         """ Replace a non-existing index. """
-        self.passmanager.append(PassB_TP_RA_PA())
+        passmanager = PassManager()
+        passmanager.append(PassB_TP_RA_PA())
 
         with self.assertRaises(TranspilerError):
-            self.passmanager.replace(99, PassA_TP_NR_NP())
+            passmanager.replace(99, PassA_TP_NR_NP())
 
 
 class TestPassManagerSlicing(SchedulerTestCase):
@@ -890,7 +940,7 @@ class TestPassManagerSlicing(SchedulerTestCase):
 
         expected = ['run transformation pass PassA_TP_NR_NP',
                     'run transformation pass PassC_TP_RA_PA']
-        self.assertScheduler(self.circuit, new_passmanager, expected)
+        self.assertScheduler(new_passmanager, expected)
 
     def test_accessing_passmanager_by_index_with_condition(self):
         """ test accessing PassManager's conditioned passes by index """
@@ -946,7 +996,7 @@ class TestPassManagerSlicing(SchedulerTestCase):
                     'run transformation pass PassA_TP_NR_NP',
                     'run transformation pass PassF_reduce_dag_property',
                     'dag property = 2']
-        self.assertScheduler(self.circuit, new_passmanager, expected)
+        self.assertScheduler(new_passmanager, expected)
 
     def test_accessing_passmanager_by_range(self):
         """ test accessing PassManager's passes by range """
@@ -960,7 +1010,7 @@ class TestPassManagerSlicing(SchedulerTestCase):
         expected = ['run transformation pass PassA_TP_NR_NP',
                     'run transformation pass PassB_TP_RA_PA',
                     'run transformation pass PassC_TP_RA_PA']
-        self.assertScheduler(self.circuit, new_passmanager, expected)
+        self.assertScheduler(new_passmanager, expected)
 
     def test_accessing_passmanager_by_range_with_condition(self):
         """ test accessing PassManager's passes by range with condition """
@@ -975,7 +1025,7 @@ class TestPassManagerSlicing(SchedulerTestCase):
         expected = ['run analysis pass PassE_AP_NR_NP',
                     'set property as True',
                     'run transformation pass PassA_TP_NR_NP']
-        self.assertScheduler(self.circuit, new_passmanager, expected)
+        self.assertScheduler(new_passmanager, expected)
 
     def test_accessing_passmanager_error(self):
         """ testing accessing a pass item not in list """
@@ -1004,7 +1054,7 @@ class TestPassManagerConcatenation(SchedulerTestCase):
         expected = ['run transformation pass PassA_TP_NR_NP',
                     'run transformation pass PassB_TP_RA_PA',
                     'run transformation pass PassC_TP_RA_PA']
-        self.assertScheduler(self.circuit, new_passmanager, expected)
+        self.assertScheduler(new_passmanager, expected)
 
     def test_concatenating_passmanagers_with_condition(self):
         """ test adding two pass managers with condition """
@@ -1022,7 +1072,7 @@ class TestPassManagerConcatenation(SchedulerTestCase):
                     'run transformation pass PassB_TP_RA_PA',
                     'run transformation pass PassC_TP_RA_PA',
                     'run transformation pass PassB_TP_RA_PA']
-        self.assertScheduler(self.circuit, new_passmanager, expected)
+        self.assertScheduler(new_passmanager, expected)
 
     def test_adding_pass_to_passmanager(self):
         """ test adding a pass to PassManager """
@@ -1036,7 +1086,7 @@ class TestPassManagerConcatenation(SchedulerTestCase):
                     'run transformation pass PassA_TP_NR_NP',
                     'run transformation pass PassB_TP_RA_PA',
                     'run transformation pass PassC_TP_RA_PA']
-        self.assertScheduler(self.circuit, self.passmanager1, expected)
+        self.assertScheduler(self.passmanager1, expected)
 
     def test_adding_list_of_passes_to_passmanager(self):
         """ test adding a list of passes to PassManager """
@@ -1051,7 +1101,7 @@ class TestPassManagerConcatenation(SchedulerTestCase):
                     'run transformation pass PassB_TP_RA_PA',
                     'run transformation pass PassC_TP_RA_PA',
                     'run transformation pass PassB_TP_RA_PA']
-        self.assertScheduler(self.circuit, self.passmanager1, expected)
+        self.assertScheduler(self.passmanager1, expected)
 
     def test_adding_list_of_passes_to_passmanager_with_condition(self):
         """ test adding a list of passes to a PassManager that have conditions"""
@@ -1065,7 +1115,7 @@ class TestPassManagerConcatenation(SchedulerTestCase):
                     'set property as False',
                     'run transformation pass PassA_TP_NR_NP',
                     'run transformation pass PassC_TP_RA_PA']
-        self.assertScheduler(self.circuit, self.passmanager1, expected)
+        self.assertScheduler(self.passmanager1, expected)
 
     def test_adding_pass_to_passmanager_error(self):
         """ testing adding a non-pass item to PassManager """

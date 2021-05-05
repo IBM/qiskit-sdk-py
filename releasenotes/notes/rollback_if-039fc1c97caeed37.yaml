@@ -1,0 +1,71 @@
+---
+features:
+  - |
+    A new pass manager method ``append_best_of`` allows to compare the result of passes.
+    Consider the following circuit:
+
+      qr = QuantumRegister(5, 'q')
+      circuit = QuantumCircuit(qr)
+      circuit.cx(qr[0], qr[4])
+      circuit.cx(qr[2], qr[4])
+      circuit.cx(qr[0], qr[4])
+
+      q_0: |0>──■─────────■──
+                │         │
+      q_1: |0>──┼─────────┼──
+                │         │
+      q_2: |0>──┼────■────┼──
+                │    │    │
+      q_3: |0>──┼────┼────┼──
+              ┌─┴─┐┌─┴─┐┌─┴─┐
+      q_4: |0>┤ X ├┤ X ├┤ X ├
+              └───┘└───┘└───┘
+
+    Under the coupling map ``[[0, 1], [0, 2], [1, 2], [3, 2], [3, 4], [4, 2]]``, let's compare
+    ``BasicSwap`` and ``LookaheadSwap``:
+
+      pm = PassManager()
+      pm.append(LookaheadSwap(coupling_map))
+      circuit_after = pm.run(circuit)
+
+      q_0: |0>─────■─────────■──
+                   │         │
+      q_1: |0>─────┼─────────┼──
+                 ┌─┴─┐┌───┐┌─┴─┐
+      q_2: |0>─X─┤ X ├┤ X ├┤ X ├
+               │ └───┘└─┬─┘└───┘
+      q_3: |0>─┼────────┼───────
+               │        │
+      q_4: |0>─X────────■───────
+
+      pm = PassManager()
+      pm.append(BasicSwap(coupling_map))
+      circuit_after = pm.run(circuit)
+
+      q_0: |0>─X───────X───────X──────
+               │       │       │
+      q_1: |0>─┼───────┼───────┼──────
+               │       │       │
+      q_2: |0>─X───■───X───■───X───■──
+                   │       │       │
+      q_3: |0>─────┼───────┼───────┼──
+                 ┌─┴─┐   ┌─┴─┐   ┌─┴─┐
+      q_4: |0>───┤ X ├───┤ X ├───┤ X ├
+                 └───┘   └───┘   └───┘
+
+    It is possible to dynamically choose the best swapper in terms of depth.
+
+      pm = PassManager()
+      pm.append_best_of([BasicSwap(coupling_map), Depth()], 'depth')
+      pm.append_best_of([LookaheadSwap(coupling_map), Depth()], 'depth')
+      circuit_after = pm.run(circuit)
+
+      q_0: |0>─────■─────────■──
+                   │         │
+      q_1: |0>─────┼─────────┼──
+                 ┌─┴─┐┌───┐┌─┴─┐
+      q_2: |0>─X─┤ X ├┤ X ├┤ X ├
+               │ └───┘└─┬─┘└───┘
+      q_3: |0>─┼────────┼───────
+               │        │
+      q_4: |0>─X────────■───────

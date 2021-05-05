@@ -48,6 +48,53 @@ class PassManager:
         self.max_iteration = max_iteration
         self.property_set = None
 
+    def append_best_of(self, passes, property_name, break_condition=None, reverse=None):
+        """
+        Appends ``passes`` in the 'best of" group defined by ``property_name``. The group
+        is then executed and the best pass set is selected based on the lower value property.
+
+        Args:
+            passes (list[BasePass] or BasePass): A set of passes (a pass set) to be added
+               to schedule. If a single pass is provided, the pass set will only have that
+               pass a single element.
+            property_name (string): The property to use for comparing.
+            break_condition (callable): The callable will be call with the property set after
+               the pass set is executed. If returns True, the rest of the passes in the group
+               will no be executed.
+            reverse (bool): By default, the method chooses the lower value or
+               ``property_set[property_name]``. If the higher value is the interesting one,
+               this parameter can be set to True. False is the default.
+
+        Raises:
+            TranspilerError: If the parameters ``reverse`` and ``break_condition`` are
+                contradicting.
+        """
+        passes = PassManager._normalize_passes(passes)
+        new_group = False
+        try:
+            if self._pass_sets[-1]['property_name'] != property_name:
+                new_group = True
+        except (KeyError, IndexError):
+            new_group = True
+
+        if new_group:
+            self._pass_sets.append({'passes': [passes],
+                                    'flow_controllers': 'best_of',
+                                    'property_name': property_name,
+                                    'break_condition': break_condition,
+                                    'reverse': reverse})
+        else:
+            self._pass_sets[-1]['passes'].append(passes)
+            if reverse is not None and \
+                    self._pass_sets[-1]['reverse'] is not None and \
+                    reverse != self._pass_sets[-1]['reverse']:
+                raise TranspilerError('Contradictory parameter reverse')
+            self._pass_sets[-1]['reverse'] = reverse
+
+            if break_condition is not None and self._pass_sets[-1]['break_condition'] is not None:
+                raise TranspilerError('The parameter break_condition should be set only once.')
+            self._pass_sets[-1]['break_condition'] = break_condition
+
     def append(
             self,
             passes: Union[BasePass, List[BasePass]],
@@ -222,7 +269,14 @@ class PassManager:
     def _create_running_passmanager(self) -> RunningPassManager:
         running_passmanager = RunningPassManager(self.max_iteration)
         for pass_set in self._pass_sets:
-            running_passmanager.append(pass_set['passes'], **pass_set['flow_controllers'])
+            if pass_set['flow_controllers'] == 'best_of':
+                reverse = pass_set['reverse'] if pass_set['reverse'] else False
+                running_passmanager.append_best_of(pass_set['passes'],
+                                                   pass_set['property_name'],
+                                                   pass_set['break_condition'],
+                                                   reverse=reverse)
+            else:
+                running_passmanager.append(pass_set['passes'], **pass_set['flow_controllers'])
         return running_passmanager
 
     @staticmethod

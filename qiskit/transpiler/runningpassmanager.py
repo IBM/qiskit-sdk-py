@@ -13,10 +13,10 @@
 """RunningPassManager class for the transpiler.
 This object holds the state of a pass manager during running-time."""
 
-from functools import partial
 from collections import OrderedDict
 import logging
 from time import time
+from copy import deepcopy
 
 from qiskit.dagcircuit import DAGCircuit
 from qiskit.converters import circuit_to_dag, dag_to_circuit
@@ -46,7 +46,6 @@ class RunningPassManager:
         # as it runs through its scheduled passes. The flow controller
         # have read-only access (via the fenced_property_set).
         self.property_set = PropertySet()
-        self.fenced_property_set = FencedPropertySet(self.property_set)
 
         # passes already run that have not been invalidated
         self.valid_passes = set()
@@ -55,6 +54,20 @@ class RunningPassManager:
         self.passmanager_options = {'max_iteration': max_iteration}
 
         self.count = 0
+
+    def append_best_of(self, passes_list, property_name, break_condition=None, reverse=False):
+        """Append a BestOfController to the schedule of passes.
+
+        Args:
+            passes_list (list): A list of pass sets.
+            property_name (string): The property to use for comparing.
+            break_condition (callable): A callable to stop the comparison
+            reverse (bool): A boolean to revert the order.
+        """
+        self.working_list.append(BestOfController(passes_list,
+                                                  property_name,
+                                                  break_condition,
+                                                  reverse))
 
     def append(self, passes, **flow_controller_conditions):
         """Append a Pass to the schedule of passes.
@@ -94,7 +107,7 @@ class RunningPassManager:
     def _normalize_flow_controller(self, flow_controller):
         for name, param in flow_controller.items():
             if callable(param):
-                flow_controller[name] = partial(param, self.fenced_property_set)
+                flow_controller[name] = param
             else:
                 raise TranspilerError('The flow controller parameter %s is not callable' % name)
         return flow_controller
@@ -118,8 +131,7 @@ class RunningPassManager:
             self.callback = callback
 
         for passset in self.working_list:
-            for pass_ in passset:
-                dag = self._do_pass(pass_, dag, passset.options)
+            dag = passset.do_passes(self, dag, FencedPropertySet(self.property_set))
 
         circuit = dag_to_circuit(dag)
         if output_name:
@@ -130,13 +142,12 @@ class RunningPassManager:
 
         return circuit
 
-    def _do_pass(self, pass_, dag, options):
+    def _do_pass(self, pass_, dag):
         """Do a pass and its "requires".
 
         Args:
             pass_ (BasePass): Pass to do.
             dag (DAGCircuit): The dag on which the pass is ran.
-            options (dict): PassManager options.
         Returns:
             DAGCircuit: The transformed dag in case of a transformation pass.
             The same input dag in case of an analysis pass.
@@ -146,7 +157,7 @@ class RunningPassManager:
 
         # First, do the requires of pass_
         for required_pass in pass_.requires:
-            dag = self._do_pass(required_pass, dag, options)
+            dag = self._do_pass(required_pass, dag)
 
         # Run the pass itself, if not already run
         if pass_ not in self.valid_passes:
@@ -218,13 +229,28 @@ class FlowController():
 
     registered_controllers = OrderedDict()
 
-    def __init__(self, passes, options, **partial_controller):
+    def __init__(self, passes, options, **flow_controller):
         self._passes = passes
-        self.passes = FlowController.controller_factory(passes, options, **partial_controller)
+        self.passes = FlowController.controller_factory(passes, options, **flow_controller)
         self.options = options
+        self.property_set = None
 
     def __iter__(self):
         yield from self.passes
+
+    def do_passes(self, pass_manager, dag, property_set):
+        """ In the context of pass_manager, runs the pass on the dag
+        Args:
+            pass_manager (PassManager): A PassManager object.
+            dag (DAGCircuit): The dag on which the pass is ran.
+            property_set (PropertySet): It will be use for parametrizing the flow controller
+        Returns:
+            DAGCircuit: The dag after the pass.
+        """
+        self.property_set = property_set
+        for pass_ in self:
+            dag = pass_manager._do_pass(pass_, dag)
+        return dag
 
     def dump_passes(self):
         """Fetches the passes added to this flow controller.
@@ -265,30 +291,29 @@ class FlowController():
         del cls.registered_controllers[name]
 
     @classmethod
-    def controller_factory(cls, passes, options, **partial_controller):
+    def controller_factory(cls, passes, options, **flow_controller):
         """Constructs a flow controller based on the partially evaluated controller arguments.
 
         Args:
             passes (list[BasePass]): passes to add to the flow controller.
             options (dict): PassManager options.
-            **partial_controller (dict): Partially evaluated controller arguments in the form
-                `{name:partial}`
+            **flow_controller (dict): Flow controller arguments in the form `{name:controller}`
 
         Raises:
-            TranspilerError: When partial_controller is not well-formed.
+            TranspilerError: When flow_controller is not well-formed.
 
         Returns:
             FlowController: A FlowController instance.
         """
-        if None in partial_controller.values():
+        if None in flow_controller.values():
             raise TranspilerError('The controller needs a condition.')
 
-        if partial_controller:
+        if flow_controller:
             for registered_controller in cls.registered_controllers.keys():
-                if registered_controller in partial_controller:
+                if registered_controller in flow_controller:
                     return cls.registered_controllers[registered_controller](passes, options,
-                                                                             **partial_controller)
-            raise TranspilerError("The controllers for %s are not registered" % partial_controller)
+                                                                             **flow_controller)
+            raise TranspilerError("The controllers for %s are not registered" % flow_controller)
 
         return FlowControllerLinear(passes, options)
 
@@ -299,38 +324,66 @@ class FlowControllerLinear(FlowController):
     def __init__(self, passes, options):  # pylint: disable=super-init-not-called
         self.passes = self._passes = passes
         self.options = options
+        self.property_set = None
 
 
 class DoWhileController(FlowController):
     """Implements a set of passes in a do-while loop."""
 
-    def __init__(self, passes, options=None, do_while=None,
-                 **partial_controller):
+    def __init__(self, passes, options=None, do_while=None, **flow_controller):
         self.do_while = do_while
         self.max_iteration = options['max_iteration'] if options else 1000
-        super().__init__(passes, options, **partial_controller)
+        self.property_set = None
+        super().__init__(passes, options, **flow_controller)
 
     def __iter__(self):
         for _ in range(self.max_iteration):
             yield from self.passes
 
-            if not self.do_while():
+            if not self.do_while(self.property_set):
                 return
-
         raise TranspilerError("Maximum iteration reached. max_iteration=%i" % self.max_iteration)
 
 
 class ConditionalController(FlowController):
     """Implements a set of passes under a certain condition."""
 
-    def __init__(self, passes, options=None, condition=None,
-                 **partial_controller):
+    def __init__(self, passes, options, condition=None, **flow_controller):
         self.condition = condition
-        super().__init__(passes, options, **partial_controller)
+        super().__init__(passes, options, **flow_controller)
 
     def __iter__(self):
         if self.condition():
             yield from self.passes
+
+
+class BestOfController(FlowController):
+    """ The set of passes is rolled back if a condition is true."""
+
+    def __init__(self, passes_list, property_name, break_condition=None, reverse=False):
+        # pylint: disable=super-init-not-called
+        self.passes_list = []
+        self.all_analysis_passes = False
+        for passes in passes_list:
+            self.all_analysis_passes = all([pass_.is_analysis_pass for pass_ in passes])
+            self.passes_list.append(FlowController.controller_factory(passes, None))
+        self.property_name = property_name
+        self.break_condition = break_condition if break_condition else lambda pm: False
+        self.reverse = reverse
+
+    def do_passes(self, pass_manager, dag, property_set):
+        results = []
+        for worklist in self.passes_list:
+            working_property_set = deepcopy(pass_manager.property_set)
+            working_dag = dag if self.all_analysis_passes else deepcopy(dag)
+            new_dag = worklist.do_passes(pass_manager, working_dag, working_property_set)
+            if self.break_condition(pass_manager.property_set):
+                return new_dag
+            results.append((pass_manager.property_set[self.property_name],
+                            new_dag, deepcopy(pass_manager.property_set)))
+        results = sorted(results, key=lambda result: result[0], reverse=self.reverse)
+        pass_manager.property_set = results[0][2]
+        return results[0][1]
 
 
 # Default controllers

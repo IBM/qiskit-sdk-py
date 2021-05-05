@@ -244,3 +244,21 @@ class PassN_AP_NR_NP(DummyAP):
         logging.getLogger(logger).info('property %s deleted', self.to_delete)
         self.property_set[self.to_none] = None
         logging.getLogger(logger).info('property %s noned', self.to_none)
+
+
+class PassO_AP_save_property(DummyAP):
+    """ An analysis pass to save the property `property` to `property_previous`
+    AP: Analysis Pass
+    NR: No Requires
+    NP: No Preserves
+    """
+
+    def __init__(self, property_name):
+        super().__init__()
+        self.property_name = property_name
+
+    def run(self, dag):
+        super().run(dag)
+        new_property = "%s_previous" % self.property_name
+        self.property_set[new_property] = self.property_set[self.property_name]
+        logging.getLogger(logger).info('%s copied to %s', self.property_name, new_property)
