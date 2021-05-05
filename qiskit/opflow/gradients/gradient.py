@@ -105,12 +105,6 @@ class Gradient(GradientBase):
             MissingOptionalLibraryError: jax not installed
         """
 
-        def is_coeff_c(coeff, c):
-            if isinstance(coeff, ParameterExpression):
-                expr = coeff._symbol_expr
-                return expr == c
-            return coeff == c
-
         if isinstance(params, (ParameterVector, list)):
             param_grads = [self.get_gradient(operator, param) for param in params]
             # If get_gradient returns None, then the corresponding parameter was probably not
@@ -128,7 +122,7 @@ class Gradient(GradientBase):
         # By now params is a single parameter
         param = params
         # Handle Product Rules
-        if not is_coeff_c(operator._coeff, 1.0):
+        if operator._coeff != 1.0:
             # Separate the operator from the coefficient
             coeff = operator._coeff
             op = operator / coeff
@@ -138,9 +132,9 @@ class Gradient(GradientBase):
             d_coeff = _coeff_derivative(coeff, param)
 
             grad_op = 0
-            if d_op != ~Zero @ One and not is_coeff_c(coeff, 0.0):
+            if d_op != ~Zero @ One and coeff != 0.0:
                 grad_op += coeff * d_op
-            if op != ~Zero @ One and not is_coeff_c(d_coeff, 0.0):
+            if op != ~Zero @ One and coeff != 0.0:
                 grad_op += d_coeff * op
             if grad_op == 0:
                 grad_op = ~Zero @ One
@@ -154,7 +148,7 @@ class Gradient(GradientBase):
         if isinstance(operator, ComposedOp):
 
             # Gradient of an expectation value
-            if not is_coeff_c(operator._coeff, 1.0):
+            if operator._coeff != 1.0:
                 raise OpflowError('Operator pre-processing failed. Coefficients were not properly '
                                   'collected inside the ComposedOp.')
 
@@ -169,7 +163,7 @@ class Gradient(GradientBase):
 
         elif isinstance(operator, CircuitStateFn):
             # Gradient of an a state's sampling probabilities
-            if not is_coeff_c(operator._coeff, 1.0):
+            if operator._coeff != 1.0:
                 raise OpflowError('Operator pre-processing failed. Coefficients were not properly '
                                   'collected inside the ComposedOp.')
             return self.grad_method.convert(operator, param)
