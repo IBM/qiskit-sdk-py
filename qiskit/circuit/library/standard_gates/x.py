@@ -452,7 +452,7 @@ class C3SXGate(ControlledGate):
 
     def _define(self):
         """
-        gate c3sqrtx a,b,c,d
+        gate c3sx a,b,c,d
         {
             h d; cu1(-pi/8) a,d; h d;
             cx a,b;
@@ -537,7 +537,7 @@ class C3XGate(ControlledGate):
     # pylint: disable=unused-argument
     def __init__(self, angle=None, label=None, ctrl_state=None):
         """Create a new 3-qubit controlled X gate."""
-        super().__init__('mcx', 4, [], num_ctrl_qubits=3, label=label,
+        super().__init__('c3x', 4, [], num_ctrl_qubits=3, label=label,
                          ctrl_state=ctrl_state, base_gate=XGate())
 
     # seems like open controls not hapening?
@@ -657,7 +657,7 @@ class RC3XGate(Gate):
 
     def __init__(self, label=None):
         """Create a new RC3X gate."""
-        super().__init__('rcccx', 4, [], label=label)
+        super().__init__('rc3x', 4, [], label=label)
 
     def _define(self):
         """
@@ -744,13 +744,13 @@ class C4XGate(ControlledGate):
 
     def __init__(self, label=None, ctrl_state=None):
         """Create a new 4-qubit controlled X gate."""
-        super().__init__('mcx', 5, [], num_ctrl_qubits=4, label=label,
+        super().__init__('c4x', 5, [], num_ctrl_qubits=4, label=label,
                          ctrl_state=ctrl_state, base_gate=XGate())
 
     # seems like open controls not hapening?
     def _define(self):
         """
-        gate c3sqrtx a,b,c,d
+        gate c3sx a,b,c,d
         {
             h d; cu1(-pi/8) a,d; h d;
             cx a,b;
@@ -772,7 +772,7 @@ class C4XGate(ControlledGate):
             rc3x a,b,c,d;
             h e; cu1(pi/4) d,e; h e;
             rc3x a,b,c,d;
-            c3sqrtx a,b,c,e;
+            c3sx a,b,c,e;
         }
         """
         # pylint: disable=cyclic-import
@@ -851,9 +851,19 @@ class MCXGate(ControlledGate):
             return gate
         return super().__new__(cls)
 
-    def __init__(self, num_ctrl_qubits, label=None, ctrl_state=None, _name='mcx'):
+    def __init__(self, num_ctrl_qubits, label=None, ctrl_state=None, _name=None):
         """Create new MCX gate."""
         num_ancilla_qubits = self.__class__.get_num_ancilla_qubits(num_ctrl_qubits)
+
+        # if MCXGate is not specified via MCXGrayCode, MCXRecursive, MCXVChain
+        if _name is None:
+            if num_ctrl_qubits == 1:
+                _name = 'cx'
+            elif num_ctrl_qubits == 2:
+                _name = 'ccx'
+            else:
+                _name = f'c{num_ctrl_qubits}x'
+
         super().__init__(_name, num_ctrl_qubits + 1 + num_ancilla_qubits, [],
                          num_ctrl_qubits=num_ctrl_qubits, label=label,
                          ctrl_state=ctrl_state, base_gate=XGate())
@@ -936,7 +946,15 @@ class MCXGrayCode(MCXGate):
         return super().__new__(cls)
 
     def __init__(self, num_ctrl_qubits, label=None, ctrl_state=None):
-        super().__init__(num_ctrl_qubits, label=label, ctrl_state=ctrl_state, _name='mcx_gray')
+
+        if num_ctrl_qubits == 1:
+            _name = 'cx'
+        elif num_ctrl_qubits == 2:
+            _name = 'ccx'
+        else:
+            _name = f'c{num_ctrl_qubits}x_gray'
+
+        super().__init__(num_ctrl_qubits, label=label, ctrl_state=ctrl_state, _name=_name)
 
     def inverse(self):
         """Invert this gate. The MCX is its own inverse."""
@@ -964,7 +982,15 @@ class MCXRecursive(MCXGate):
     """
 
     def __init__(self, num_ctrl_qubits, label=None, ctrl_state=None):
-        super().__init__(num_ctrl_qubits, label=label, ctrl_state=ctrl_state, _name='mcx_recursive')
+
+        if num_ctrl_qubits == 1:
+            _name = 'cx'
+        elif num_ctrl_qubits == 2:
+            _name = 'ccx'
+        else:
+            _name = f'c{num_ctrl_qubits}x_recursive'
+
+        super().__init__(num_ctrl_qubits, label=label, ctrl_state=ctrl_state, _name=_name)
 
     @staticmethod
     def get_num_ancilla_qubits(num_ctrl_qubits, mode='recursion'):
@@ -1028,7 +1054,15 @@ class MCXVChain(MCXGate):
         return super().__new__(cls, num_ctrl_qubits, label=label, ctrl_state=ctrl_state)
 
     def __init__(self, num_ctrl_qubits, dirty_ancillas=False, label=None, ctrl_state=None):
-        super().__init__(num_ctrl_qubits, label=label, ctrl_state=ctrl_state, _name='mcx_vchain')
+
+        if num_ctrl_qubits == 1:
+            _name = 'cx'
+        elif num_ctrl_qubits == 2:
+            _name = 'ccx'
+        else:
+            _name = f'c{num_ctrl_qubits}x_vchain'
+
+        super().__init__(num_ctrl_qubits, label=label, ctrl_state=ctrl_state, _name=_name)
         self._dirty_ancillas = dirty_ancillas
 
     def inverse(self):
