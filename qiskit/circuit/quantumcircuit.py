@@ -1377,6 +1377,13 @@ class QuantumCircuit:
         else:
             return string_temp
 
+    def _ipython_display_(self):
+        if self.width() > 50 or self.size() > 50 or self.depth() > 20:
+            print(self.__repr__())
+            return
+        from IPython.display import display
+        display(self.draw())
+
     def draw(self, output=None, scale=None, filename=None, style=None,
              interactive=False, plot_barriers=True,
              reverse_bits=False, justify=None, vertical_compression='medium', idle_wires=True,
