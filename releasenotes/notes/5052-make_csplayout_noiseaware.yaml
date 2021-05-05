@@ -1,0 +1,8 @@
+---
+    features:
+      - |
+        A new layout method is introduced based on the CSPLayout but features an additional noise awareness.
+    
+        * :class:`qiskit.transpiler.layout.csp_layout` got refactored. A new parameter 'limit_solutions' was
+          introduced. It allows to decide wether the first found solution should be taken or all possible solutions should be calculated, choosing the one with highest expected fidelity. Furthermore, the 'run' method was 
+          refactored to allow for a concise layout. 

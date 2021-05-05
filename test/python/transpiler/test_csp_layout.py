@@ -14,13 +14,14 @@
 
 import unittest
 from time import process_time
+from math import pi
 
-from qiskit import QuantumRegister, QuantumCircuit
+from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.transpiler import CouplingMap
 from qiskit.transpiler.passes import CSPLayout
 from qiskit.converters import circuit_to_dag
 from qiskit.test import QiskitTestCase
-from qiskit.test.mock import FakeTenerife, FakeRueschlikon, FakeTokyo
+from qiskit.test.mock import FakeTenerife, FakeRueschlikon, FakeTokyo, FakeBogota, FakeMelbourne
 
 
 class TestCSPLayout(QiskitTestCase):
@@ -41,8 +42,8 @@ class TestCSPLayout(QiskitTestCase):
         pass_.run(dag)
         layout = pass_.property_set['layout']
 
-        self.assertEqual(layout[qr[0]], 1)
-        self.assertEqual(layout[qr[1]], 0)
+        self.assertEqual(layout[qr[0]], 0)
+        self.assertEqual(layout[qr[1]], 1)
         self.assertEqual(pass_.property_set['CSPLayout_stop_reason'], 'solution found')
 
     def test_3q_circuit_5q_coupling(self):
@@ -66,8 +67,8 @@ class TestCSPLayout(QiskitTestCase):
         pass_.run(dag)
         layout = pass_.property_set['layout']
 
-        self.assertEqual(layout[qr[0]], 3)
-        self.assertEqual(layout[qr[1]], 2)
+        self.assertEqual(layout[qr[0]], 2)
+        self.assertEqual(layout[qr[1]], 3)
         self.assertEqual(layout[qr[2]], 4)
         self.assertEqual(pass_.property_set['CSPLayout_stop_reason'], 'solution found')
 
@@ -91,15 +92,104 @@ class TestCSPLayout(QiskitTestCase):
         pass_.run(dag)
         layout = pass_.property_set['layout']
 
-        self.assertEqual(layout[qr0[0]], 9)
+        self.assertEqual(layout[qr0[0]], 5)
         self.assertEqual(layout[qr0[1]], 6)
         self.assertEqual(layout[qr0[2]], 7)
-        self.assertEqual(layout[qr0[3]], 5)
-        self.assertEqual(layout[qr1[0]], 14)
-        self.assertEqual(layout[qr1[1]], 12)
-        self.assertEqual(layout[qr1[2]], 1)
-        self.assertEqual(layout[qr1[3]], 8)
+        self.assertEqual(layout[qr0[3]], 14)
+        self.assertEqual(layout[qr1[0]], 8)
+        self.assertEqual(layout[qr1[1]], 1)
+        self.assertEqual(layout[qr1[2]], 2)
+        self.assertEqual(layout[qr1[3]], 12)
         self.assertEqual(layout[qr1[4]], 10)
+        self.assertEqual(pass_.property_set['CSPLayout_stop_reason'], 'solution found')
+
+    def test_2q_circuit_5q_coupling_noise(self):
+        """ 2 qubits in Bogota, with noise
+            0 - 1 - 2 - qr1 - qr2
+        """
+        qr = QuantumRegister(2, 'qr')
+        circuit = QuantumCircuit(qr)
+        circuit.cx(qr[1], qr[0])  # qr1 -> qr0
+        dag = circuit_to_dag(circuit)
+
+        backend = FakeBogota()
+        coupling_map = CouplingMap(backend.configuration().coupling_map)
+        backend_prop = backend.properties()
+
+        pass_ = CSPLayout(coupling_map,
+                          strict_direction=True,
+                          seed=self.seed,
+                          solution_limit=4,
+                          backend_properties=backend_prop)
+        pass_.run(dag)
+        layout = pass_.property_set['layout']
+
+        self.assertEqual(layout[qr[0]], 1)
+        self.assertEqual(layout[qr[1]], 2)
+        self.assertEqual(pass_.property_set['CSPLayout_stop_reason'], 'solution found')
+
+    def test_3q_circuit_5q_coupling_noise(self):
+        """ 3 qubits in Bogota, with noise
+            0 - 1 - qr1 - qr2 - qr3
+        """
+        qr = QuantumRegister(3, 'qr')
+        circuit = QuantumCircuit(qr)
+        circuit.cx(qr[0], qr[1])  # qr1 -> qr0
+        circuit.cx(qr[1], qr[2])  # qr0 -> qr2
+        dag = circuit_to_dag(circuit)
+
+        backend = FakeBogota()
+        coupling_map = CouplingMap(backend.configuration().coupling_map)
+        backend_prop = backend.properties()
+
+        pass_ = CSPLayout(coupling_map,
+                          strict_direction=True,
+                          seed=self.seed,
+                          solution_limit=3,
+                          backend_properties=backend_prop)
+        pass_.run(dag)
+        layout = pass_.property_set['layout']
+
+        self.assertEqual(layout[qr[0]], 2)
+        self.assertEqual(layout[qr[1]], 1)
+        self.assertEqual(layout[qr[2]], 0)
+        self.assertEqual(pass_.property_set['CSPLayout_stop_reason'], 'solution found')
+
+    def test_3q_circuit_16_coupling_noise(self):
+        """ 3 qubits in Melbourne, with noise """
+        qr = QuantumRegister(3, 'qr')
+        cr = ClassicalRegister(3, 'cr')
+        circuit = QuantumCircuit(qr, cr)
+        circuit.x(qr[0])
+        circuit.cx(qr[0], qr[1])
+        circuit.h(qr[1])
+        circuit.cx(qr[0], qr[1])
+        circuit.cx(qr[1], qr[2])
+        circuit.h(qr[2])
+        circuit.cx(qr[1], qr[2])
+        circuit.x(qr[0])
+        circuit.y(qr[1])
+        circuit.h(qr[2])
+        circuit.measure(qr[0], cr[0])
+        circuit.measure(qr[1], cr[1])
+        circuit.measure(qr[2], cr[2])
+        dag = circuit_to_dag(circuit)
+
+        backend = FakeMelbourne()
+        coupling_map = CouplingMap(backend.configuration().coupling_map)
+        backend_prop = backend.properties()
+
+        pass_ = CSPLayout(coupling_map,
+                          strict_direction=True,
+                          seed=self.seed,
+                          solution_limit=5,
+                          backend_properties=backend_prop)
+        pass_.run(dag)
+        layout = pass_.property_set['layout']
+
+        self.assertEqual(layout[qr[0]], 1)
+        self.assertEqual(layout[qr[1]], 2)
+        self.assertEqual(layout[qr[2]], 3)
         self.assertEqual(pass_.property_set['CSPLayout_stop_reason'], 'solution found')
 
     def test_2q_circuit_2q_coupling_sd(self):
@@ -241,7 +331,7 @@ class TestCSPLayout(QiskitTestCase):
         """Hard to solve situations hit the time limit"""
         dag = TestCSPLayout.create_hard_dag()
         coupling_map = CouplingMap(FakeTokyo().configuration().coupling_map)
-        pass_ = CSPLayout(coupling_map, call_limit=None, time_limit=1)
+        pass_ = CSPLayout(coupling_map, call_limit=None, time_limit=0.0001)
 
         start = process_time()
         pass_.run(dag)
@@ -263,10 +353,19 @@ class TestCSPLayout(QiskitTestCase):
         self.assertLess(runtime, 1)
         self.assertEqual(pass_.property_set['CSPLayout_stop_reason'], 'call limit reached')
 
+    def test_solution_limit(self):
+        """Test warning if solution limit is set but backend_prop is not"""
+        coupling_map = CouplingMap(FakeTokyo().configuration().coupling_map)
+        with self.assertWarns(Warning):
+            CSPLayout(coupling_map, solution_limit=-1)
+
+        with self.assertWarns(Warning):
+            CSPLayout(coupling_map, solution_limit=2, backend_properties=None)
+
     def test_seed(self):
         """Different seeds yield different results"""
-        seed_1 = 42
-        seed_2 = 43
+        seed_1 = 992
+        seed_2 = 993
 
         cmap5 = FakeTenerife().configuration().coupling_map
 
