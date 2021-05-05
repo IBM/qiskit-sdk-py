@@ -123,6 +123,16 @@ Additional Passes
    RemoveFinalMeasurements
    DAGFixedPoint
    FixedPoint
+
+
+Transpiler Pass Plugins
+=======================
+
+.. autosummary::
+   :toctree: ../stubs/
+
+   qiskit.transpiler.passes.synthesis.plugin
+
 """
 
 # layout selection (placement)
@@ -178,6 +188,7 @@ from .analysis import DAGLongestPath
 
 # synthesis
 from .synthesis import UnitarySynthesis
+from .synthesis import unitary_synthesis_plugin_names
 
 # circuit scheduling
 from .scheduling import ALAPSchedule

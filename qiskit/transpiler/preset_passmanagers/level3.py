@@ -98,9 +98,13 @@ def level_3_pass_manager(pass_manager_config: PassManagerConfig) -> PassManager:
     seed_transpiler = pass_manager_config.seed_transpiler
     backend_properties = pass_manager_config.backend_properties
     approximation_degree = pass_manager_config.approximation_degree
+    unitary_synthesis_method = pass_manager_config.unitary_synthesis_method
 
     # 1. Unroll to 1q or 2q gates
-    _unroll3q = Unroll3qOrMore()
+    _unroll3q = [UnitarySynthesis(basis_gates, approximation_degree=approximation_degree,
+                                  coupling_map=coupling_map,
+                                  method=unitary_synthesis_method),
+                 Unroll3qOrMore()]
 
     # 2. Layout on good qubits if calibration info available, otherwise on dense links
     _given_layout = SetLayout(initial_layout)
@@ -188,7 +192,8 @@ def level_3_pass_manager(pass_manager_config: PassManagerConfig) -> PassManager:
             Unroll3qOrMore(),
             Collect2qBlocks(),
             ConsolidateBlocks(basis_gates=basis_gates),
-            UnitarySynthesis(basis_gates, approximation_degree=approximation_degree),
+            UnitarySynthesis(basis_gates, approximation_degree=approximation_degree,
+                             method=unitary_synthesis_method),
         ]
     else:
         raise TranspilerError("Invalid translation method %s." % translation_method)
@@ -215,7 +220,8 @@ def level_3_pass_manager(pass_manager_config: PassManagerConfig) -> PassManager:
     _opt = [
         Collect2qBlocks(),
         ConsolidateBlocks(basis_gates=basis_gates),
-        UnitarySynthesis(basis_gates, approximation_degree=approximation_degree),
+        UnitarySynthesis(basis_gates, approximation_degree=approximation_degree,
+                         method=unitary_synthesis_method),
         Optimize1qGatesDecomposition(basis_gates),
         CommutativeCancellation(),
     ]
