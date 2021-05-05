@@ -531,7 +531,6 @@ Exceptions
    JobTimeoutError
 """
 
-import pkgutil
 
 # Providers interface
 from qiskit.providers.provider import Provider
@@ -548,7 +547,3 @@ from qiskit.providers.basejob import BaseJob
 from qiskit.providers.exceptions import (JobError, JobTimeoutError, QiskitBackendNotFoundError,
                                          BackendPropertyError, BackendConfigurationError)
 from qiskit.providers.jobstatus import JobStatus
-
-
-# Allow extending this namespace.
-__path__ = pkgutil.extend_path(__path__, __name__)

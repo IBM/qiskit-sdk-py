@@ -99,24 +99,24 @@ class QiskitVersion(Mapping):
 
     def _load_versions(self):
         try:
-            from qiskit.providers import aer
+            import qiskit_aer as aer
             self._version_dict['qiskit-aer'] = aer.__version__
         except Exception:
             self._version_dict['qiskit-aer'] = None
         try:
-            from qiskit import ignis
+            import qiskit_ignis as ignis
             self._version_dict['qiskit-ignis'] = ignis.__version__
         except Exception:
             self._version_dict['qiskit-ignis'] = None
         try:
-            from qiskit.providers import ibmq
+            import qiskit_ibmq_provider as ibmq
             self._version_dict['qiskit-ibmq-provider'] = ibmq.__version__
         except Exception:
             self._version_dict['qiskit-ibmq-provider'] = None
         # TODO: Remove aqua after deprecation is complete and it is removed from
         # the metapackage
         try:
-            from qiskit import aqua
+            import qiskit_aqua as aqua
             self._version_dict['qiskit-aqua'] = aqua.__version__
         except Exception:
             self._version_dict['qiskit-aqua'] = None

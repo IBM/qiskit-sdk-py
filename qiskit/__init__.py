@@ -12,39 +12,61 @@
 
 # pylint: disable=invalid-name,wrong-import-position
 
-
 """Main Qiskit public functionality."""
 
-import pkgutil
 import sys
 import warnings
 import os
 
+# Extend namespace for backwards compat
+from qiskit import namespace
+new_meta_path = []
+new_meta_path.append(namespace.QiskitElementImport(
+    'qiskit_aer', 'qiskit.providers.aer'))
+new_meta_path.append(namespace.QiskitElementImport(
+    'qiskit_ignis', 'qiskit.ignis'))
+new_meta_path.append(namespace.QiskitElementImport(
+    'qiskit_aqua', 'qiskit.aqua'))
+new_meta_path.append(namespace.QiskitElementImport(
+    'qiskit_aqua.chemistry', 'qiskit.chemistry'))
+new_meta_path.append(namespace.QiskitElementImport(
+    'qiskit_aqua.finance', 'qiskit.finance'))
+new_meta_path.append(namespace.QiskitElementImport(
+    'qiskit_aqua.ml', 'qiskit.ml'))
+new_meta_path.append(namespace.QiskitElementImport(
+    'qiskit_aqua.optimization', 'qiskit.optimization'))
+new_meta_path.append(namespace.QiskitElementImport(
+    'qiskit_ibmq_provider', 'qiskit.providers.ibmq'))
+new_meta_path.append(namespace.QiskitElementImport(
+    'qiskit_aqt_provider', 'qiskit.providers.aqt'))
+new_meta_path.append(namespace.QiskitElementImport(
+    'qiskit_honeywell_provider', 'qiskit.providers.honeywell'))
+# Add Qiskit importers to meta_path before PathFinder in the default
+# sys.meta_path to avoid the miss penalty on trying to import a module
+# which does not exist
+old_meta_path = sys.meta_path
+sys.meta_path = old_meta_path[:-1] + new_meta_path + [old_meta_path[-1]]
+
 # qiskit errors operator
-from qiskit.exceptions import QiskitError
+from qiskit.exceptions import QiskitError  # noqa
 
 # The main qiskit operators
-from qiskit.circuit import ClassicalRegister
-from qiskit.circuit import QuantumRegister
-from qiskit.circuit import AncillaRegister
-from qiskit.circuit import QuantumCircuit
+from qiskit.circuit import ClassicalRegister  # noqa
+from qiskit.circuit import QuantumRegister  # noqa
+from qiskit.circuit import AncillaRegister  # noqa
+from qiskit.circuit import QuantumCircuit  # noqa
 
 # user config
-from qiskit import user_config as _user_config
+from qiskit import user_config as _user_config  # noqa
 
 # The qiskit.extensions.x imports needs to be placed here due to the
 # mechanism for adding gates dynamically.
-import qiskit.extensions
-import qiskit.circuit.measure
-import qiskit.circuit.reset
-
-# Allow extending this namespace. Please note that currently this line needs
-# to be placed *before* the wrapper imports or any non-import code AND *before*
-# importing the package you want to allow extensions for (in this case `backends`).
-__path__ = pkgutil.extend_path(__path__, __name__)
+import qiskit.extensions  # noqa
+import qiskit.circuit.measure  # noqa
+import qiskit.circuit.reset  # noqa
 
 # Please note these are global instances, not modules.
-from qiskit.providers.basicaer import BasicAer
+from qiskit.providers.basicaer import BasicAer  # noqa
 
 _config = _user_config.get_config()
 
@@ -76,8 +98,8 @@ class AerWrapper:
     def __bool__(self):
         if self.aer is None:
             try:
-                from qiskit.providers import aer
-                self.aer = aer.Aer
+                import qiskit_aer
+                self.aer = qiskit_aer.Aer
             except ImportError:
                 return False
         return True
@@ -85,8 +107,8 @@ class AerWrapper:
     def __getattr__(self, attr):
         if not self.aer:
             try:
-                from qiskit.providers import aer
-                self.aer = aer.Aer
+                import qiskit_aer
+                self.aer = qiskit_aer.Aer
             except ImportError as exc:
                 raise ImportError('Could not import the Aer provider from the '
                                   'qiskit-aer package. Install qiskit-aer or '
@@ -103,7 +125,7 @@ class IBMQWrapper:
     def __bool__(self):
         if self.ibmq is None:
             try:
-                from qiskit.providers import ibmq
+                import qiskit_ibmq_provider as ibmq
                 self.ibmq = ibmq.IBMQ
             except ImportError:
                 return False
@@ -112,7 +134,7 @@ class IBMQWrapper:
     def __getattr__(self, attr):
         if not self.ibmq:
             try:
-                from qiskit.providers import ibmq
+                import qiskit_ibmq_provider as ibmq
                 self.ibmq = ibmq.IBMQ
             except ImportError as exc:
                 raise ImportError('Could not import the IBMQ provider from the '
