@@ -17,7 +17,7 @@ import unittest
 
 from qiskit.converters import ast_to_dag, circuit_to_dag
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit import qasm
+from qiskit import qasm2
 from qiskit.test import QiskitTestCase
 
 
@@ -38,7 +38,7 @@ class TestAstToDag(QiskitTestCase):
         qasm_dir = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             'qasm')
-        ast = qasm.Qasm(os.path.join(qasm_dir, 'example.qasm')).parse()
+        ast = qasm2.Qasm(os.path.join(qasm_dir, 'example.qasm')).parse()
         dag_circuit = ast_to_dag(ast)
         expected_result = """\
 OPENQASM 2.0;
