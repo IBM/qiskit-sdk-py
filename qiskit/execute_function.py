@@ -44,6 +44,7 @@ def execute(experiments, backend,
             qobj_id=None, qobj_header=None, shots=None,  # common run options
             memory=False, max_credits=None, seed_simulator=None,
             default_qubit_los=None, default_meas_los=None,  # schedule run options
+            qubit_lo_range=None, meas_lo_range=None,
             schedule_los=None, meas_level=None,
             meas_return=None,
             memory_slots=None, memory_slot_size=None, rep_time=None, rep_delay=None,
@@ -149,15 +150,34 @@ def execute(experiments, backend,
 
         seed_simulator (int): Random seed to control sampling, for when backend is a simulator
 
-        default_qubit_los (list): List of default qubit LO frequencies in Hz
+        default_qubit_los (Optional[List[float]]): List of job level qubit drive LO frequencies
+            in Hz. Overridden by ``schedule_los`` if specified. Must have length ``n_qubits.``
 
-        default_meas_los (list): List of default meas LO frequencies in Hz
+        default_meas_los (Optional[List[float]]): List of job level measurement LO frequencies in
+            Hz. Overridden by ``schedule_los`` if specified. Must have length ``n_qubits.``
 
-        schedule_los (None or list or dict or LoConfig): Experiment LO
-            configurations, if specified the list is in the format::
+        qubit_lo_range (Optional[List[List[float]]]): List of job level drive LO ranges each of form
+            ``[range_min, range_max]`` in Hz. Used to validate ``qubit_lo_freq``. Must have length
+            ``n_qubits``.
 
-                list[Union[Dict[PulseChannel, float], LoConfig]] or
-                     Union[Dict[PulseChannel, float], LoConfig]
+        meas_lo_range (Optional[List[List[float]]]): List of job level measurement LO ranges each of
+            form ``[range_min, range_max]`` in Hz. Used to validate ``meas_lo_freq``. Must have
+            length ``n_qubits``.
+
+        schedule_los (Optional[Union[List[Union[Dict[PulseChannel, float], LoConfig]],
+                               Union[Dict[PulseChannel, float], LoConfig]]]):
+            Experiment level (ie circuit or schedule) LO frequency configurations for qubit drive
+            and measurement channels. These values override the job level values from
+            ``default_qubit_los`` and ``default_meas_los``. Frequencies are in Hz. Settable for qasm
+            and pulse jobs.
+
+            If a single LO config or dict is used, the values are set at job level. If a list is
+            used, the list must be the size of the number of experiments in the job, except in the
+            case of a single experiment. In this case, a frequency sweep will be assumed and one
+            experiment will be created for every list entry.
+
+            Not every channel is required to be specified. If not specified, the backend default
+            value will be used.
 
         meas_level (int or MeasLevel): Set the appropriate level of the
             measurement output for pulse experiments.
@@ -285,8 +305,10 @@ def execute(experiments, backend,
                         memory=memory,
                         max_credits=max_credits,
                         seed_simulator=seed_simulator,
-                        default_qubit_los=default_qubit_los,
-                        default_meas_los=default_meas_los,
+                        qubit_lo_freq=default_qubit_los,
+                        meas_lo_freq=default_meas_los,
+                        qubit_lo_range=qubit_lo_range,
+                        meas_lo_range=meas_lo_range,
                         schedule_los=schedule_los,
                         meas_level=meas_level,
                         meas_return=meas_return,
@@ -310,8 +332,10 @@ def execute(experiments, backend,
             'shots': shots,
             'memory': memory,
             'seed_simulator': seed_simulator,
-            'default_qubit_los': default_qubit_los,
-            'default_meas_los': default_meas_los,
+            'qubit_lo_freq': default_qubit_los,
+            'meas_lo_freq': default_meas_los,
+            'qubit_lo_range': qubit_lo_range,
+            'meas_lo_range': meas_lo_range,
             'schedule_los': schedule_los,
             'meas_level': meas_level,
             'meas_return': meas_return,
