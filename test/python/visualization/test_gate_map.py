@@ -16,15 +16,11 @@ import os
 
 from ddt import ddt, data
 from qiskit.test.mock import FakeProvider
-from qiskit.test import QiskitTestCase
-from qiskit.visualization.gate_map import _GraphDist, plot_gate_map, plot_circuit_layout
+from qiskit.visualization.gate_map import plot_gate_map, plot_circuit_layout
 from qiskit.tools.visualization import HAS_MATPLOTLIB
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.transpiler import Layout
 from .visualization import path_to_diagram_reference, QiskitVisualizationTestCase
-
-if HAS_MATPLOTLIB:
-    import matplotlib.pyplot as plt
 
 
 @ddt
