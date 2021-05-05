@@ -180,7 +180,7 @@ class TestCircuitOperations(QiskitTestCase):
         qr = QuantumRegister(2)
         cr = ClassicalRegister(2)
         qc1 = QuantumCircuit(qr, cr)
-        qc2 = QuantumCircuit(qr, cr)
+        qc2 = QuantumCircuit(qr, cr, name='qc2')
         qc1.h(qr[0])
         qc1.measure(qr[0], cr[0])
         qc2.measure(qr[1], cr[1])
@@ -193,7 +193,7 @@ class TestCircuitOperations(QiskitTestCase):
         counts = result.get_counts()
         target = {'00': shots / 2, '01': shots / 2}
         threshold = 0.04 * shots
-        self.assertDictEqual(qc3.count_ops(), {'h': 1, 'measure': 2})
+        self.assertDictEqual(qc3.count_ops(), {'h': 1, 'measure': 1, 'qc2': 1})
         self.assertDictEqual(qc1.count_ops(), {'h': 1, 'measure': 1})  # no changes "in-place"
         self.assertDictEqual(qc2.count_ops(), {'measure': 1})  # no changes "in-place"
         self.assertDictAlmostEqual(counts, target, threshold)
@@ -203,7 +203,7 @@ class TestCircuitOperations(QiskitTestCase):
         qr = QuantumRegister(2)
         cr = ClassicalRegister(2)
         qc1 = QuantumCircuit(qr, cr)
-        qc2 = QuantumCircuit(qr, cr)
+        qc2 = QuantumCircuit(qr, cr, name='qc2')
         qc1.h(qr[0])
         qc1.measure(qr[0], cr[0])
         qc2.measure(qr[1], cr[1])
@@ -216,7 +216,8 @@ class TestCircuitOperations(QiskitTestCase):
         counts = result.get_counts()
         target = {'00': shots / 2, '01': shots / 2}
         threshold = 0.04 * shots
-        self.assertDictEqual(qc3.count_ops(), {'h': 1, 'measure': 2})
+        self.assertDictEqual(qc3.count_ops(),
+                             {'h': 1, 'measure': 1, 'qc2': 1})
         self.assertDictEqual(qc1.count_ops(), {'h': 1, 'measure': 1})  # no changes "in-place"
         self.assertDictEqual(qc2.count_ops(), {'measure': 1})  # no changes "in-place"
         self.assertDictAlmostEqual(counts, target, threshold)
@@ -226,7 +227,7 @@ class TestCircuitOperations(QiskitTestCase):
         qr = QuantumRegister(2)
         cr = ClassicalRegister(2)
         qc1 = QuantumCircuit(qr, cr)
-        qc2 = QuantumCircuit(qr, cr)
+        qc2 = QuantumCircuit(qr, cr, name='qc2')
         qc1.h(qr[0])
         qc1.measure(qr[0], cr[0])
         qc2.measure(qr[1], cr[1])
@@ -239,7 +240,8 @@ class TestCircuitOperations(QiskitTestCase):
         counts = result.get_counts()
         target = {'00': shots / 2, '01': shots / 2}
         threshold = 0.04 * shots
-        self.assertDictEqual(qc1.count_ops(), {'h': 1, 'measure': 2})  # changes "in-place"
+        self.assertDictEqual(qc1.count_ops(),
+                             {'h': 1, 'qc2': 1, 'measure': 1})  # changes "in-place"
         self.assertDictEqual(qc2.count_ops(), {'measure': 1})  # no changes "in-place"
         self.assertDictAlmostEqual(counts, target, threshold)
 
@@ -290,7 +292,7 @@ class TestCircuitOperations(QiskitTestCase):
         counts = result.get_counts()
         target = {'00': shots / 2, '01': shots / 2}
         threshold = 0.04 * shots
-        self.assertDictEqual(qc3.count_ops(), {'h': 1, 'measure': 2})
+        self.assertDictEqual(qc3.decompose().count_ops(), {'h': 1, 'measure': 2})
         self.assertDictEqual(qc2.count_ops(), {'h': 1, 'measure': 1})  # no changes "in-place"
         self.assertDictEqual(qc1.count_ops(), {'measure': 1})  # no changes "in-place"
         self.assertDictAlmostEqual(counts, target, threshold)
@@ -312,7 +314,7 @@ class TestCircuitOperations(QiskitTestCase):
         counts = result.get_counts()
         target = {'00': shots / 2, '01': shots / 2}
         threshold = 0.04 * shots
-        self.assertDictEqual(qc3.count_ops(), {'h': 1, 'measure': 2})
+        self.assertDictEqual(qc3.decompose().count_ops(), {'h': 1, 'measure': 2})
         self.assertDictEqual(qc2.count_ops(), {'h': 1, 'measure': 1})  # no changes "in-place"
         self.assertDictEqual(qc1.count_ops(), {'measure': 1})  # no changes "in-place"
         self.assertDictAlmostEqual(counts, target, threshold)
@@ -334,7 +336,8 @@ class TestCircuitOperations(QiskitTestCase):
         counts = result.get_counts()
         target = {'00': shots / 2, '01': shots / 2}
         threshold = 0.04 * shots
-        self.assertDictEqual(qc1.count_ops(), {'h': 1, 'measure': 2})  # changes "in-place"
+        self.assertDictEqual(qc1.decompose().count_ops(),
+                             {'h': 1, 'measure': 2})  # changes "in-place"
         self.assertDictEqual(qc2.count_ops(), {'h': 1, 'measure': 1})  # no changes "in-place"
         self.assertDictAlmostEqual(counts, target, threshold)
 
@@ -872,10 +875,18 @@ class TestCircuitOperations(QiskitTestCase):
 
         self.assertFalse(qc1 == qc2)
 
+    def test_append_front(self):
+        """Test appending a circuit to the front of another circuit."""
+        qc1 = QuantumCircuit(2)
+        qc1.h([0, 1])
 
-class TestCircuitBuilding(QiskitTestCase):
-    """QuantumCircuit tests."""
+        qc2 = QuantumCircuit(2)
+        qc2.x([0, 1])
 
-    def test_append_dimension_mismatch(self):
-        """Test appending to incompatible wires.
-        """
+        qc1.append(qc2, [0, 1], front=True)
+
+        ref = QuantumCircuit(2)
+        ref.append(qc2, [0, 1])
+        ref.h([0, 1])
+
+        self.assertEqual(qc1, ref)

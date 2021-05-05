@@ -129,7 +129,7 @@ class CircuitOp(PrimitiveOp):
             other = other.to_circuit_op()
 
         if isinstance(other, (CircuitOp, CircuitStateFn)):
-            new_qc = other.primitive.compose(new_self.primitive)
+            new_qc = other.primitive.compose(new_self.primitive, wrap=False)
             if isinstance(other, CircuitStateFn):
                 return CircuitStateFn(new_qc,
                                       is_measurement=other.is_measurement,
@@ -233,5 +233,6 @@ class CircuitOp(PrimitiveOp):
         Returns:
             A new CircuitOp containing the permuted circuit.
         """
-        new_qc = QuantumCircuit(max(permutation) + 1).compose(self.primitive, qubits=permutation)
+        new_qc = QuantumCircuit(max(permutation) + 1).compose(self.primitive, qubits=permutation,
+                                                              wrap=False)
         return CircuitOp(new_qc, coeff=self.coeff)
