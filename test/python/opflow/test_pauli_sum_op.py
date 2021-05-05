@@ -207,9 +207,11 @@ class TestPauliSumOp(QiskitOpflowTestCase):
 
         pauli_op = (Z ^ I ^ X) + (I ^ I ^ Y)
         mat_op = pauli_op.to_matrix_op()
-        full_basis = [''.join(b) for b in product('01', repeat=pauli_op.num_qubits)]
+        full_basis = [''.join(b) for b in
+                      product('01', repeat=pauli_op.num_qubits)]
         for bstr1, bstr2 in product(full_basis, full_basis):
-            self.assertEqual(pauli_op.eval(bstr1).eval(bstr2), mat_op.eval(bstr1).eval(bstr2))
+            self.assertEqual(pauli_op.eval(bstr1).eval(bstr2),
+                             mat_op.eval(bstr1).eval(bstr2))
 
     def test_exp_i(self):
         """ exp_i test """
@@ -295,6 +297,100 @@ class TestPauliSumOp(QiskitOpflowTestCase):
             self.assertTrue(
                 np.array_equal(i.toarray(), coeff * coeffs[idx] *
                                Pauli(labels[idx]).to_matrix()))
+
+    def test_json_single(self):
+        """Test json serializer for PauliSumOp"""
+        pauli_sum = PauliSumOp(SparsePauliOp(Pauli("XYZX"),
+                                             coeffs=[2]),
+                               coeff=3)
+        json_string = pauli_sum.to_json()
+        decoded_pauli_sum = PauliSumOp.from_json(json_string)
+        self.assertEqual(pauli_sum, decoded_pauli_sum)
+
+    def test_json_single_expr(self):
+        """Test json serializer for parameterized PauliSumOp"""
+        x = Parameter('x')
+        y = x + 1
+        pauli_sum = PauliSumOp(SparsePauliOp(Pauli("XYZX"),
+                                             coeffs=[1]),
+                               coeff=y)
+        json_string = pauli_sum.to_json()
+        decoded_pauli_sum = PauliSumOp.from_json(json_string)
+        self.assertEqual(pauli_sum.assign_parameters({x: 2}),
+                         decoded_pauli_sum.assign_parameters(
+                             {decoded_pauli_sum.parameters.pop(): 2}))
+
+    def test_json_complex(self):
+        """Test json serializer for PauliSumOp"""
+        pauli_sum = PauliSumOp(SparsePauliOp(Pauli("XYZX"),
+                                             coeffs=[1+2j]),
+                               coeff=3-2j)
+        json_string = pauli_sum.to_json()
+        decoded_pauli_sum = PauliSumOp.from_json(json_string)
+        self.assertEqual(pauli_sum, decoded_pauli_sum)
+
+    def test_json_parameter_expression(self):
+        """Test json serializer for PauliSumOp"""
+        x = Parameter('x')
+        expr = 2 * x + 1
+        pauli_sum = PauliSumOp(SparsePauliOp(Pauli("XYZX"),
+                                             coeffs=[2]),
+                               coeff=expr)
+        json_string = pauli_sum.to_json()
+        decoded_pauli_sum = PauliSumOp.from_json(json_string)
+        self.assertEqual(pauli_sum.assign_parameters({x: 2}),
+                         decoded_pauli_sum.assign_parameters(
+                             {decoded_pauli_sum.parameters.pop(): 2}))
+
+    def test_json_sum(self):
+        """Test to_json serializer for PauliSumOp"""
+        pauli_sum = PauliSumOp.from_list(
+            [
+                ("II", -1.052373245772859),
+                ("IZ", 0.39793742484318045),
+                ("ZI", -0.39793742484318045),
+                ("ZZ", -0.01128010425623538),
+                ("XX", 0.18093119978423156),
+            ]
+        )
+        json_string = pauli_sum.to_json()
+        decoded_pauli_sum = PauliSumOp.from_json(json_string)
+        self.assertEqual(pauli_sum, decoded_pauli_sum)
+
+    def test_json_sum2(self):
+        """Test PauliSumOp sparse matrix_iter method."""
+        labels = ['III', 'IXI', 'IYY', 'YIZ', 'XYZ', 'III']
+        coeffs = np.array([1, 2, 3, 4, 5, 6])
+        coeff = 10
+        table = PauliTable.from_labels(labels)
+        pauli_sum = PauliSumOp(SparsePauliOp(table, coeffs), coeff)
+        json_string = pauli_sum.to_json()
+        decoded_pauli_sum = PauliSumOp.from_json(json_string)
+        self.assertEqual(pauli_sum, decoded_pauli_sum)
+
+    def test_json_unallowed_expr_import(self):
+        """test unallowed import in JSON expression"""
+        from qiskit.opflow.primitive_ops.pauli_sum_op import _as_qiskit_type
+        bad_string = {'__parameter_expression__': True,
+                      'expr': '__import__("os").getcwd()'}
+        with self.assertRaises(NameError):
+            _as_qiskit_type(bad_string)
+
+    def test_json_unallowed_expr_abs(self):
+        """test unallowed builtin call to abs in JSON expression"""
+        from qiskit.opflow.primitive_ops.pauli_sum_op import _as_qiskit_type
+        bad_string = {'__parameter_expression__': True,
+                      'expr': 'abs(-1)'}
+        with self.assertRaises(NameError):
+            _as_qiskit_type(bad_string)
+
+    def test_json_allowed_expr_sin(self):
+        """test allowed sin in JSON expression"""
+        from qiskit.opflow.primitive_ops.pauli_sum_op import _as_qiskit_type
+        bad_string = {'__parameter_expression__': True,
+                      'expr': 'sin(2*a)+1'}
+        expr = _as_qiskit_type(bad_string)
+        self.assertEqual(str(expr), 'sin(2*a) + 1')
 
 
 if __name__ == "__main__":
