@@ -445,7 +445,7 @@ def pad(schedule: Schedule,
         until: Optional[int] = None,
         inplace: bool = False
         ) -> Schedule:
-    """Pad the input Schedule with ``Delay``s on all unoccupied timeslots until
+    """Pad the input Schedule with delays on all unoccupied timeslots until
     ``schedule.duration`` or ``until`` if not ``None``.
 
     Args:
