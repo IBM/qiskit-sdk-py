@@ -152,6 +152,18 @@ Algorithms that estimate the phases of eigenstates of a unitary.
    PhaseEstimation
    PhaseEstimationResult
 
+Equivalence Checkers
+++++++++++++++++++++
+Algorithms that determine whether circuits are equivalent.
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   BaseEquivalenceChecker
+   UnitaryEquivalenceChecker
+   EquivalenceCheckerResult
+
 Exceptions
 ==========
 
@@ -180,6 +192,8 @@ from .minimum_eigen_solvers import (VQE, VQEResult, QAOA,
                                     MinimumEigensolver, MinimumEigensolverResult)
 from .phase_estimators import (HamiltonianPhaseEstimation, HamiltonianPhaseEstimationResult,
                                PhaseEstimationScale, PhaseEstimation, PhaseEstimationResult)
+from .equivalence_checkers import (BaseEquivalenceChecker, UnitaryEquivalenceChecker,
+                                   EquivalenceCheckerResult, equivalence_checker)
 from .exceptions import AlgorithmError
 
 __all__ = [
@@ -220,5 +234,8 @@ __all__ = [
     'PhaseEstimationScale',
     'PhaseEstimation',
     'PhaseEstimationResult',
+    'BaseEquivalenceChecker',
+    'UnitaryEquivalenceChecker',
+    'EquivalenceCheckerResult',
     'AlgorithmError',
 ]
