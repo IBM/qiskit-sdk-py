@@ -13,13 +13,23 @@
 """ Test Optimizers """
 
 import unittest
+
 from test.python.algorithms import QiskitAlgorithmsTestCase
 from scipy.optimize import rosen
 import numpy as np
 
 from qiskit.utils import algorithm_globals
 from qiskit.algorithms.optimizers import (ADAM, CG, COBYLA, L_BFGS_B, P_BFGS, NELDER_MEAD,
-                                          POWELL, SLSQP, SPSA, TNC, GSLS)
+                                          POWELL, SLSQP, SPSA, TNC, GSLS, SAM)
+
+
+def rastrigin(x):
+    x = np.asarray(x)
+    return 10 * len(x) + np.sum(x ** 2 - 10 * np.cos(2 * np.pi * x), axis=0)
+
+
+def bukin(x):
+    return 100 * np.sqrt(abs(x[1] - 0.01 * x[0] * x[0])) + 0.01 * abs(x[0] + 10)
 
 
 class TestOptimizers(QiskitAlgorithmsTestCase):
@@ -38,6 +48,12 @@ class TestOptimizers(QiskitAlgorithmsTestCase):
     def test_adam(self):
         """ adam test """
         optimizer = ADAM(maxiter=10000, tol=1e-06)
+        res = self._optimize(optimizer)
+        self.assertLessEqual(res[2], 10000)
+
+    def test_sam(self):
+        """ sam test """
+        optimizer = SAM(maxiter=10000, tol=1e-06, second_order=True)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
