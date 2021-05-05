@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    The class :class:`~qiskit.result.Counts` and the method :meth:`~qiskit.result.Result.get_counts`
+    are extended with a parameter  `implicit_zeros` (boolean, default `False`) to include the missing keys with implicit zero values.

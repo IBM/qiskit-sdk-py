@@ -30,7 +30,6 @@ class TestResultOperations(QiskitTestCase):
                                      qobj_id='id-123',
                                      job_id='job-123',
                                      success=True)
-
         super().setUp()
 
     def test_counts_no_header(self):
@@ -56,6 +55,58 @@ class TestResultOperations(QiskitTestCase):
         result = Result(results=[exp_result], **self.base_result_args)
 
         self.assertEqual(result.get_counts(0), processed_counts)
+
+    def test_counts_header_with_zeros(self):
+        """Test that counts are extracted properly with header (implicit_zeros)."""
+        raw_counts = {'0x0': 4, '0x2': 10}
+        processed_counts = {'0 0 00': 4, '0 0 10': 10,
+                            '0 0 01': 0, '0 0 11': 0, '0 1 00': 0, '0 1 01': 0, '0 1 10': 0,
+                            '0 1 11': 0, '1 0 00': 0, '1 0 01': 0, '1 0 10': 0, '1 0 11': 0,
+                            '1 1 00': 0, '1 1 01': 0, '1 1 10': 0, '1 1 11': 0}
+        data = models.ExperimentResultData(counts=dict(**raw_counts))
+        exp_result_header = QobjExperimentHeader(
+            creg_sizes=[['c0', 2], ['c0', 1], ['c1', 1]], memory_slots=4)
+        exp_result = models.ExperimentResult(shots=14, success=True, meas_level=2,
+                                             data=data, header=exp_result_header)
+        result = Result(results=[exp_result], **self.base_result_args)
+
+        self.assertEqual(result.get_counts(0, implicit_zeros=True), processed_counts)
+
+    def test_memory_slots_none_with_zeros(self):
+        """Test implicit_zeros when memory_slots=None."""
+        raw_counts = {'0x0': 4, '0x2': 10}
+        processed_counts = {'0 0 00': 4, '0 0 10': 10,
+                            '0 0 01': 0, '0 0 11': 0, '0 1 00': 0, '0 1 01': 0, '0 1 10': 0,
+                            '0 1 11': 0, '1 0 00': 0, '1 0 01': 0, '1 0 10': 0, '1 0 11': 0,
+                            '1 1 00': 0, '1 1 01': 0, '1 1 10': 0, '1 1 11': 0}
+        data = models.ExperimentResultData(counts=dict(**raw_counts))
+        exp_result_header = QobjExperimentHeader(
+            creg_sizes=[['c0', 2], ['c0', 1], ['c1', 1]])
+        exp_result = models.ExperimentResult(shots=14, success=True, meas_level=2,
+                                             data=data, header=exp_result_header)
+        result = Result(results=[exp_result], **self.base_result_args)
+
+        self.assertEqual(result.get_counts(0, implicit_zeros=True), processed_counts)
+
+    def test_estimate_size_with_zeros(self):
+        """Test implicit_zeros when memory_slots=None and creg_sizes=None."""
+        raw_counts = {'0x0': 4, '0x3': 10}
+        processed_counts = {'00': 4, '01': 0, '10': 0, '11': 10}
+        data = models.ExperimentResultData(counts=dict(**raw_counts))
+        exp_result = models.ExperimentResult(shots=14, success=True, meas_level=2, data=data)
+        result = Result(results=[exp_result], **self.base_result_args)
+
+        self.assertEqual(result.get_counts(0, implicit_zeros=True), processed_counts)
+
+    def test_implicit_zeros_empty(self):
+        """Test implicit_zeros when no data, memory_slots=None and creg_sizes=None."""
+        raw_counts = {}
+        processed_counts = {}
+        data = models.ExperimentResultData(counts=dict(**raw_counts))
+        exp_result = models.ExperimentResult(shots=14, success=True, meas_level=2, data=data)
+        result = Result(results=[exp_result], **self.base_result_args)
+
+        self.assertEqual(result.get_counts(0, implicit_zeros=True), processed_counts)
 
     def test_counts_by_name(self):
         """Test that counts are extracted properly by name."""
@@ -99,8 +150,7 @@ class TestResultOperations(QiskitTestCase):
         self.assertEqual(expected, repr(result))
 
     def test_multiple_circuits_counts(self):
-        """"
-        Test that counts are returned either as a list or a single item.
+        """Test that counts are returned either as a list or a single item.
 
         Counts are returned as a list when multiple experiments are executed
         and get_counts() is called with no arguments. In all the other cases

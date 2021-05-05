@@ -30,7 +30,7 @@ class Counts(dict):
     bitstring_regex = re.compile(r'^[01\s]+$')
 
     def __init__(self, data, time_taken=None, creg_sizes=None,
-                 memory_slots=None):
+                 memory_slots=None, implicit_zeros=False):
         """Build a counts object
 
         Args:
@@ -56,38 +56,57 @@ class Counts(dict):
                 ``[('c_reg', 2), ('my_creg', 4)]``.
             memory_slots (int): The number of total ``memory_slots`` in the
                 experiment.
+            implicit_zeros (bool): If `True`, the missing keys are filled up with implicit zero
+                values. Default `False`.
         Raises:
             TypeError: If the input key type is not an int or string
             QiskitError: If a dit string key is input with creg_sizes and/or
                 memory_slots
         """
-        bin_data = None
         data = dict(data)
-        if not data:
-            self.int_raw = {}
-            self.hex_raw = {}
-            bin_data = {}
-        else:
+
+        header = {}
+        self.creg_sizes = creg_sizes
+        if self.creg_sizes:
+            header['creg_sizes'] = self.creg_sizes
+        self.memory_slots = memory_slots
+        if self.memory_slots:
+            header['memory_slots'] = self.memory_slots
+
+        self.int_raw = {}
+        self.hex_raw = {}
+        bin_data = {}
+
+        if implicit_zeros:
+            memory_size = postprocess.estimate_memory_slots(data, header)
+            if memory_size:
+                for slot_int in range(2**memory_size):
+                    self.int_raw[slot_int] = 0
+                    self.hex_raw[hex(slot_int)] = 0
+                    header['memory_slots'] = memory_size
+                    bin_data[postprocess.format_counts_memory(hex(slot_int), header)] = 0
+
+        if data:
             first_key = next(iter(data.keys()))
             if isinstance(first_key, int):
-                self.int_raw = data
-                self.hex_raw = {
-                    hex(key): value for key, value in self.int_raw.items()}
+                self.int_raw.update(data)
+                self.hex_raw.update({
+                    hex(key): value for key, value in self.int_raw.items()})
             elif isinstance(first_key, str):
                 if first_key.startswith('0x'):
-                    self.hex_raw = data
-                    self.int_raw = {
-                        int(key, 0): value for key, value in self.hex_raw.items()}
+                    self.hex_raw.update(data)
+                    self.int_raw.update({
+                        int(key, 0): value for key, value in self.hex_raw.items()})
                 elif first_key.startswith('0b'):
-                    self.int_raw = {
-                        int(key, 0): value for key, value in data.items()}
-                    self.hex_raw = {
-                        hex(key): value for key, value in self.int_raw.items()}
+                    self.int_raw.update({
+                        int(key, 0): value for key, value in data.items()})
+                    self.hex_raw.update({
+                        hex(key): value for key, value in self.int_raw.items()})
                 else:
                     if not creg_sizes and not memory_slots:
                         self.hex_raw = None
                         self.int_raw = None
-                        bin_data = data
+                        bin_data.update(data)
                     else:
                         hex_dict = {}
                         int_dict = {}
@@ -100,20 +119,14 @@ class Counts(dict):
                             int_key = self._remove_space_underscore(bitstring)
                             int_dict[int_key] = value
                             hex_dict[hex(int_key)] = value
-                        self.hex_raw = hex_dict
-                        self.int_raw = int_dict
+                        self.hex_raw.update(hex_dict)
+                        self.int_raw.update(int_dict)
             else:
                 raise TypeError("Invalid input key type %s, must be either an int "
                                 "key or string key with hexademical value or bit string")
-        header = {}
-        self.creg_sizes = creg_sizes
-        if self.creg_sizes:
-            header['creg_sizes'] = self.creg_sizes
-        self.memory_slots = memory_slots
-        if self.memory_slots:
-            header['memory_slots'] = self.memory_slots
-        if not bin_data:
-            bin_data = postprocess.format_counts(self.hex_raw, header=header)
+
+        if not bin_data or implicit_zeros:
+            bin_data.update(postprocess.format_counts(self.hex_raw, header=header))
         super().__init__(bin_data)
         self.time_taken = time_taken
 

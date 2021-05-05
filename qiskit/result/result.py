@@ -236,12 +236,14 @@ class Result:
                 'or a measurement level 0/1 job.'.format(repr(experiment))
             ) from ex
 
-    def get_counts(self, experiment=None):
+    def get_counts(self, experiment=None, implicit_zeros=False):
         """Get the histogram data of an experiment.
 
         Args:
             experiment (str or QuantumCircuit or Schedule or int or None): the index of the
                 experiment, as specified by ``data([experiment])``.
+            implicit_zeros (bool): If `True`, the missing keys are filled up with implicit zero
+                values. Default `False`.
 
         Returns:
             dict[str:int] or list[dict[str:int]]: a dictionary or a list of
@@ -249,7 +251,6 @@ class Result:
                 the keys containing a string in binary format and separated
                 according to the registers in circuit (e.g. ``0100 1110``).
                 The string is little-endian (cr[0] on the right hand side).
-
         Raises:
             QiskitError: if there are no counts for the experiment.
         """
@@ -273,7 +274,8 @@ class Result:
                             'time_taken', 'creg_sizes', 'memory_slots'}}
                 else:
                     counts_header = {}
-                dict_list.append(Counts(self.data(key)['counts'], **counts_header))
+                dict_list.append(Counts(self.data(key)['counts'], **counts_header,
+                                        implicit_zeros=implicit_zeros))
             elif 'statevector' in self.data(key).keys():
                 vec = postprocess.format_statevector(self.data(key)['statevector'])
                 dict_list.append(statevector.Statevector(vec).probabilities_dict(decimals=15))
