@@ -16,11 +16,12 @@ import unittest
 from time import process_time
 
 from qiskit import QuantumRegister, QuantumCircuit
+from qiskit.circuit.library import GraphState
 from qiskit.transpiler import CouplingMap
 from qiskit.transpiler.passes import CSPLayout
 from qiskit.converters import circuit_to_dag
 from qiskit.test import QiskitTestCase
-from qiskit.test.mock import FakeTenerife, FakeRueschlikon, FakeTokyo
+from qiskit.test.mock import FakeTenerife, FakeRueschlikon, FakeTokyo, FakeBogota
 
 
 class TestCSPLayout(QiskitTestCase):
@@ -199,6 +200,28 @@ class TestCSPLayout(QiskitTestCase):
         self.assertIsNone(layout)
         self.assertEqual(pass_.property_set['CSPLayout_stop_reason'], 'nonexistent solution')
 
+    def test_5q_graphstate_bogota(self):
+        """ 5 qubits Graphsate in Bogota"""
+        backend = FakeBogota()
+        coupling_map = CouplingMap(backend.configuration().coupling_map)
+        matrix = [[0, 0, 0, 0, 1],
+                  [0, 0, 1, 0, 0],
+                  [0, 1, 0, 1, 0],
+                  [0, 0, 1, 0, 1],
+                  [1, 0, 0, 1, 0]]
+        circuit = GraphState(matrix)
+        dag = circuit_to_dag(circuit)
+        pass_ = CSPLayout(coupling_map, seed=self.seed)
+        pass_.run(dag)
+        layout = pass_.property_set['layout']
+
+        self.assertEqual(pass_.property_set['CSPLayout_stop_reason'], 'solution found')
+        self.assertEqual(layout[circuit.qubits[2]], 3)
+        self.assertEqual(layout[circuit.qubits[3]], 2)
+        self.assertEqual(layout[circuit.qubits[4]], 1)
+        self.assertEqual(layout[circuit.qubits[0]], 0)
+        self.assertEqual(layout[circuit.qubits[1]], 4)
+
     @staticmethod
     def create_hard_dag():
         """Creates a particularly hard circuit (returns its dag) for Tokyo"""
@@ -241,7 +264,7 @@ class TestCSPLayout(QiskitTestCase):
         """Hard to solve situations hit the time limit"""
         dag = TestCSPLayout.create_hard_dag()
         coupling_map = CouplingMap(FakeTokyo().configuration().coupling_map)
-        pass_ = CSPLayout(coupling_map, call_limit=None, time_limit=1)
+        pass_ = CSPLayout(coupling_map, call_limit=None, time_limit=0.1)
 
         start = process_time()
         pass_.run(dag)

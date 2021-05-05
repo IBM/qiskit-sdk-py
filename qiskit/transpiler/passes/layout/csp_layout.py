@@ -17,7 +17,8 @@ found, no ``property_set['layout']`` is set.
 """
 import random
 from time import time
-from constraint import Problem, RecursiveBacktrackingSolver, AllDifferentConstraint
+from constraint import Problem, RecursiveBacktrackingSolver, AllDifferentConstraint, Constraint, \
+    Unassigned
 
 from qiskit.transpiler.layout import Layout
 from qiskit.transpiler.basepasses import AnalysisPass
@@ -65,6 +66,32 @@ class CustomSolver(RecursiveBacktrackingSolver):
                                              single)
 
 
+class CustomConstraint(Constraint):
+    """Based on constraint.FunctionConstraint, reduces all the generality to check if a
+    2-sized-tuple (control, target) is in a set (edges).
+    """
+
+    def __init__(self, edges, assigned=True):
+        self._edges = edges
+        self._assigned = assigned
+        edge, *_ = edges
+        self.strict_direction = not isinstance(edge, frozenset)
+
+    def __call__(self, variables, domains, assignments, forwardcheck=False):
+        var1, var2 = variables
+        parms = (assignments.get(var1, Unassigned),
+                 assignments.get(var2, Unassigned))
+        if not self.strict_direction:
+            parms = frozenset(parms)
+        if Unassigned in parms:
+            return (self._assigned or parms in self._edges) and (
+                    not forwardcheck or
+                    parms == (Unassigned, Unassigned) or
+                    self.forwardCheck(variables, domains, assignments)
+            )
+        return parms in self._edges
+
+
 class CSPLayout(AnalysisPass):
     """If possible, chooses a Layout as a CSP, using backtracking."""
 
@@ -109,6 +136,10 @@ class CSPLayout(AnalysisPass):
                      qubits.index(gate.qargs[1])))
         edges = set(self.coupling_map.get_edges())
 
+        if not self.strict_direction:
+            cxs = {frozenset(cx) for cx in cxs}
+            edges = {frozenset(edge) for edge in edges}
+
         if self.time_limit is None and self.call_limit is None:
             solver = RecursiveBacktrackingSolver()
         else:
@@ -122,15 +153,8 @@ class CSPLayout(AnalysisPass):
         problem.addVariables(variables, variable_domains)
         problem.addConstraint(AllDifferentConstraint())  # each wire is map to a single qubit
 
-        if self.strict_direction:
-            def constraint(control, target):
-                return (control, target) in edges
-        else:
-            def constraint(control, target):
-                return (control, target) in edges or (target, control) in edges
-
         for pair in cxs:
-            problem.addConstraint(constraint, [pair[0], pair[1]])
+            problem.addConstraint(CustomConstraint(edges), pair)
 
         solution = problem.getSolution()
 
