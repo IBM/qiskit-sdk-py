@@ -1019,26 +1019,26 @@ class TestParameterGradients(QiskitOpflowTestCase):
         with self.subTest("linear"):
             expr = 2 * x + y
 
-            grad = Gradient.parameter_expression_grad(expr, x)
+            grad = expr.gradient(x)
             self.assertEqual(grad, 2)
 
-            grad = Gradient.parameter_expression_grad(expr, y)
+            grad = expr.gradient(y)
             self.assertEqual(grad, 1)
 
         with self.subTest("polynomial"):
             expr = x * x * x - x * y + y * y
 
-            grad = Gradient.parameter_expression_grad(expr, x)
+            grad = expr.gradient(x)
             self.assertEqual(grad, 3 * x * x - y)
 
-            grad = Gradient.parameter_expression_grad(expr, y)
+            grad = expr.gradient(y)
             self.assertEqual(grad, -1 * x + 2 * y)
 
     def test_converted_to_float_if_bound(self):
         """Test the gradient is a float when no free symbols are left."""
         x = Parameter("x")
         expr = 2 * x + 1
-        grad = Gradient.parameter_expression_grad(expr, x)
+        grad = expr.gradient(x)
         self.assertIsInstance(grad, float)
 
 

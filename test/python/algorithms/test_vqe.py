@@ -229,7 +229,7 @@ class TestVQE(QiskitAlgorithmsTestCase):
         except Exception as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
-        backend = Aer.get_backend("qasm_simulator")
+        backend = Aer.get_backend("aer_simulator")
         optimizer = SPSA(maxiter=200, last_avg=5)
         wavefunction = self.ry_wavefunction
 
@@ -257,7 +257,7 @@ class TestVQE(QiskitAlgorithmsTestCase):
         except Exception as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
-        backend = Aer.get_backend("qasm_simulator")
+        backend = Aer.get_backend("aer_simulator")
         optimizer = L_BFGS_B()
         wavefunction = self.ry_wavefunction
 
@@ -388,7 +388,7 @@ class TestVQE(QiskitAlgorithmsTestCase):
         except Exception as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
-        backend = Aer.get_backend("qasm_simulator")
+        backend = Aer.get_backend("aer_simulator")
 
         with self.subTest("Defaults"):
             vqe = VQE(quantum_instance=backend)

@@ -23,7 +23,6 @@ from qiskit.utils import circuit_utils
 from qiskit.exceptions import QiskitError
 from .backend_utils import (
     is_ibmq_provider,
-    is_aer_provider,
     is_statevector_backend,
     is_simulator_backend,
     is_local_backend,
@@ -332,15 +331,9 @@ class QuantumInstance:
         if not had_transpiled:
             circuits = self.transpile(circuits)
 
-        # fix for providers that don't support QasmQobj until a bigger refactor happens
         from qiskit.providers import BackendV1
 
-        circuit_job = (
-            isinstance(self._backend, BackendV1)
-            and not is_aer_provider(self._backend)
-            and not is_basicaer_provider(self._backend)
-            and not is_ibmq_provider(self._backend)
-        )
+        circuit_job = isinstance(self._backend, BackendV1)
 
         # assemble
         if not circuit_job:
