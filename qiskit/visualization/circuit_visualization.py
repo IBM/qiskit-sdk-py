@@ -602,5 +602,6 @@ def _matplotlib_circuit_drawer(
         global_phase=global_phase,
         qregs=circuit.qregs,
         cregs=circuit.cregs,
+        calibrations=circuit.calibrations,
     )
     return qcd.draw(filename)
