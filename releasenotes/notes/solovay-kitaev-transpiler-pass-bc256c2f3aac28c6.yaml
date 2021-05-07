@@ -1,0 +1,8 @@
+---
+features:
+  - |
+    Added a transpiler pass to run the Solovay-Kitaev algorithm for approximating single-qubit
+    unitaries using a discrete gate set. In combination with the basis translator, this allows
+    to convert any unitary circuit to a universal discrete gate set, which could be implemented
+    fault-tolerantly.
+
