@@ -472,7 +472,7 @@ class MatplotlibDrawer:
         elif gate_text in (op.name, base_name) and not isinstance(op.op, (Gate, Instruction)):
             gate_text = gate_text.capitalize()
         if op.name in self.calibrations:
-            gate_text = gate_text+"\n(cal)"
+            gate_text = gate_text + "\n(cal)"
 
         return gate_text, ctrl_text
 
