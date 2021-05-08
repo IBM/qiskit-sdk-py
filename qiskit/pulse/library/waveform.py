@@ -26,11 +26,14 @@ class Waveform(Pulse):
     duration of the backend cycle-time, dt.
     """
 
+    limit_amplitude = True
+
     def __init__(
         self,
         samples: Union[np.ndarray, List[complex]],
         name: Optional[str] = None,
         epsilon: float = 1e-7,
+        limit_amplitude: Optional[bool] = None,
     ):
         """Create new sample pulse command.
 
@@ -41,9 +44,12 @@ class Waveform(Pulse):
                 If any sample's norm exceeds unity by less than or equal to epsilon
                 it will be clipped to unit norm. If the sample
                 norm is greater than 1+epsilon an error will be raised.
+            limit_amplitude: If True, then limit the amplitude of the waveform to 1.
         """
 
         samples = np.asarray(samples, dtype=np.complex_)
+        if limit_amplitude is not None:
+            self.limit_amplitude = limit_amplitude
         self.epsilon = epsilon
         self._samples = self._clip(samples, epsilon=epsilon)
         super().__init__(duration=len(samples), name=name)
@@ -95,8 +101,12 @@ class Waveform(Pulse):
             samples[clip_where] = clipped_samples
             samples_norm[clip_where] = np.abs(clipped_samples)
 
-        if np.any(samples_norm > 1.0):
-            raise PulseError("Pulse contains sample with norm greater than 1+epsilon.")
+        if np.any(samples_norm > 1.0) and self.limit_amplitude:
+            amp = np.max(samples_norm)
+            raise PulseError(
+                f"Pulse contains sample with norm {amp} greater than 1+epsilon."
+                " This can be overruled by setting Waveform.limit_amplitude."
+            )
 
         return samples
 
